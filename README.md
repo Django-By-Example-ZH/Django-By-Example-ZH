@@ -1,2 +1,2 @@
 # Django-By-Example-ZH
-《Django By Example》个人翻译
+《Django By Example》中文翻译
