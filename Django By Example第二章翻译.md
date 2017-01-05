@@ -115,7 +115,7 @@ name字段是一个CharField。这种类型的字段等同于`<input type=“tex
     'your_account@gmail.com', ['your_account@gmail.com'], fail_
     silently=False)
     
-*send_mail()*方法需要这些参数：邮件主题，内容，发送人以及一个收件人的列表。通过设置可选参数`fail_silently=False`，我们告诉这个方法如果email没有发送成功那么需要抛出一个异常。如果你看到输出是*1*，证明你的email发送成功了。如果你通过Gmail来发送邮件使用之前的配置，你可能需要去设置一下低安全级别的应用权限在https://www.google.com/settings/security/lesssecureapps 。(译者注：自我练习时老老实实用QQ邮箱吧）
+*send_mail()*方法需要这些参数：邮件主题，内容，发送人以及一个收件人的列表。通过设置可选参数`fail_silently=False`，我们告诉这个方法如果email没有发送成功那么需要抛出一个异常。如果你看到输出是*1*，证明你的email发送成功了。如果你通过Gmail来发送邮件使用之前的配置，你可能需要去设置一下低安全级别的应用权限在https://www.google.com/settings/security/lesssecureapps 。(译者注：练习时老老实实用QQ邮箱吧）
 
 现在，我们要将以上代码添加到我们的view中。在博客应用下的views.py文件中编辑*post_share* view如下所示：
 
@@ -207,16 +207,16 @@ name字段是一个CharField。这种类型的字段等同于`<input type=“tex
 请记住，我们通过使用Django提供的`{% url %}`template标签来生成动态的URL。我们使用叫做*blog*的命名空间和叫做*post_share*的URL命名以及传递一个帖子ID为参数来构建绝对URL。
 
 现在，通过命令`python manage.py runserver`命令来启动开发服务，在浏览器中打开 http://127.0.0.1:8000/blog/ 。点击任意一个帖子标题进入详情页面。在帖子内容的下方，你会看到我们刚刚添加的链接，如下所示：
-（图片）
+![django-2-1](http://ohqrvqrlb.bkt.clouddn.com/django-2-1.png)
 
 点击**Share this post**你会看到一个包含通过email分享这个帖子的表单。看上去如下所示：
-（图片）
+![django-2-2](http://ohqrvqrlb.bkt.clouddn.com/django-2-2.png)
 
 为这个表单提供的CSS样式被包含在示例代码中的 *static/css/blog.css*文件中。当你点击**Send e-mail**按钮，这个表单会提交并验证。如果所有的字段都通过了验证，你会得到一条成功信息如下所示：
-（图片）
+![django-2-3](http://ohqrvqrlb.bkt.clouddn.com/django-2-3.png)
 
 如果你输入了错误的数据，你会看到表单被再次渲染，并展示出验证错误信息，如下所示：
-（图片）
+![django-2-4](http://ohqrvqrlb.bkt.clouddn.com/django-2-4.png)
 
 ##创建一个评论系统
 现在我们准备为博客创建一个评论系统，这样用户可以在帖子上进行评论。你需要做到以下几点来创建一个评论系统：
@@ -277,7 +277,7 @@ Django在博客应用下的*migrations/*目录下生成了一个*0002_comment.py
     admin.site.register(Comment, CommentAdmin)
     
 通过运行命令`python manage.py runserver`来启动开发服务病在浏览器中打开 http://127.0.0.1:8000/admin/ 。 你会看到新的model在**Blog**区域中出现，如下所示：
-（图片）
+![django-2-5](http://ohqrvqrlb.bkt.clouddn.com/django-2-5.png)
 
 我们的model已经被注册到管理站点我们可以使用简单的接口来管理评论实例。
 
@@ -295,9 +295,32 @@ Django在博客应用下的*migrations/*目录下生成了一个*0002_comment.py
 ##在views中操作ModelForms
 我们会使用帖子的详情view来实例化表单，能更简单的处理它。编辑*models.py*文件，导入*Comment* modle和*CommentForm*表单，并且修改*post_detail* view如下所示：
 
-    from .models import Post, Comment    from .forms import EmailPostForm, CommentForm    def post_detail(request, year, month, day, post):        post = get_object_or_404(Post, slug=post,                                      status='published',                                      publish__year=year,                                      publish__month=month,                                      publish__day=day)
-        # List of active comments for this post        comments = post.comments.filter(active=True)
-                if request.method == 'POST':            # A comment was posted            comment_form = CommentForm(data=request.POST)            if comment_form.is_valid():                # Create Comment object but don't save to database yet                new_comment = comment_form.save(commit=False)                # Assign the current post to the comment                new_comment.post = post                # Save the comment to the database                new_comment.save()        else:            comment_form = CommentForm()        return render(request,              'blog/post/detail.html',              {'post': post,
+    from .models import Post, Comment
+    from .forms import EmailPostForm, CommentForm
+    def post_detail(request, year, month, day, post):
+        post = get_object_or_404(Post, slug=post,
+                                      status='published',
+                                      publish__year=year,
+                                      publish__month=month,
+                                      publish__day=day)
+        # List of active comments for this post
+        comments = post.comments.filter(active=True)
+        
+        if request.method == 'POST':
+            # A comment was posted
+            comment_form = CommentForm(data=request.POST)
+            if comment_form.is_valid():
+                # Create Comment object but don't save to database yet
+                new_comment = comment_form.save(commit=False)
+                # Assign the current post to the comment
+                new_comment.post = post
+                # Save the comment to the database
+                new_comment.save()
+        else:
+            comment_form = CommentForm()
+        return render(request,
+              'blog/post/detail.html',
+              {'post': post,
               'comments': comments, 
               'comment_form': comment_form})
 
@@ -336,7 +359,11 @@ Django在博客应用下的*migrations/*目录下生成了一个*0002_comment.py
 
 首先，我们来添加评论的总数。打开*blog_detail.html* template在*content*区块中添加如下代码：
 
-    {% with comments.count as total_comments %}     <h2>       {{ total_comments }} comment{{ total_comments|pluralize }}     </h2>    {% endwith %}
+    {% with comments.count as total_comments %}
+     <h2>
+       {{ total_comments }} comment{{ total_comments|pluralize }}
+     </h2>
+    {% endwith %}
     
 我们在template中使用Django ORM执行`comments.count()` QuerySet。注意，在Django template语言中调用方法时不使用圆括号。`{% with %}` tag允许我们分配一个值给新的变量，这个变量可以一直使用直到遇到`{% endwith %}`。
 
@@ -348,22 +375,41 @@ Django在博客应用下的*migrations/*目录下生成了一个*0002_comment.py
 
 现在，让我们加入评论列。在template中之前的代码后面加入以下内容：
     
-    {% for comment in comments %}     <div class="comment">       <p class="info">         Comment {{ forloop.counter }} by {{ comment.name }}         {{ comment.created }}    </p>       {{ comment.body|linebreaks }}     </div>       {% empty %}     <p>There are no comments yet.</p>    {% endfor %}
+    {% for comment in comments %}
+     <div class="comment">
+       <p class="info">
+         Comment {{ forloop.counter }} by {{ comment.name }}
+         {{ comment.created }}
+    </p>
+       {{ comment.body|linebreaks }}
+     </div>
+       {% empty %}
+     <p>There are no comments yet.</p>
+    {% endfor %}
     
 我们使用`{% for %}` template tag来循环所有的评论。我们会显示一个默认的信息如果*comments*列为空，告诉我们的用户这篇帖子还没有任何评论。我们通过使用 `{{ forloop.counter }}`变量来枚举评论，该变量包含在每次迭代的循环计数中。之后我们显示发送评论的用户名，日期，和评论的内容。
 
 最后，你需要渲染表单或者显示一条成功的信息来代替表单当表单提交成功后。在之前的代码后面添加如下内容：
 
-    {% if new_comment %}    <h2>Your comment has been added.</h2>    {% else %}    <h2>Add a new comment</h2>    <form action="." method="post">       {{ comment_form.as_p }}       {% csrf_token %}       <p><input type="submit" value="Add comment"></p>    </form>    {% endif %}
+    {% if new_comment %}
+    <h2>Your comment has been added.</h2>
+    {% else %}
+    <h2>Add a new comment</h2>
+    <form action="." method="post">
+       {{ comment_form.as_p }}
+       {% csrf_token %}
+       <p><input type="submit" value="Add comment"></p>
+    </form>
+    {% endif %}
     
 这段代码非常简洁明了：如果存在*new_comment*对象，我们会展示一条成功信息因为成功创建了一条新评论。否则，我们通过一个段落`<p>`元素渲染表单中每一个字段，并且表明这个POST请求包含有CSRF标记。在浏览器中打开 http://127.0.0.1:8000/blog/ 然后点击任意一篇帖子的标题进入它的详情页面。你会看到如下页面展示：
-（图片）
+![django-2-6](http://ohqrvqrlb.bkt.clouddn.com/django-2-6.png)
 
 使用表单添加几条评论。这些评论会在你的帖子下面根据时间排序来展示，类似下图：
-（图片）
+![django-2-7](http://ohqrvqrlb.bkt.clouddn.com/django-2-7.png)
 
 在你的浏览器中打开http://127.0.0.1:8000/admin/blog/comment/ 。你会看到管理页面中存在你创建的评论列表。随便点击其中的一行来进行编辑，取消选择**Active**复选框，然后点击**Save**按钮。你会再次被重定向到评论列页面，刚才编辑的评论**Active**列将会显示一个不激活的图表。类似下图：
-（图片）
+![django-2-8](http://ohqrvqrlb.bkt.clouddn.com/django-2-8.png)
 
 ##增加标签功能
 在应用了我们的评论系统之后，我们准备创建一种方法来为我们的帖子打标签。我们准备在我们的项目中集成第三方的Django标签应用来使用。*django-taggit*是一个可重用的应用，它首先提供给你一个*Tag* model和一个manager用来方便的给每个model添加标签。你可以阅读到源码，通过访问 https://github.com/alex/django-taggit 。
@@ -374,11 +420,18 @@ Django在博客应用下的*migrations/*目录下生成了一个*0002_comment.py
     
 之后打开*mysite*项目下的*settings.py*文件，在*INSTALLED_APPS*设置中设置如下：
     
-    INSTALLED_APPS = (    # ...    'blog',    'taggit',    )
+    INSTALLED_APPS = (
+    # ...
+    'blog',
+    'taggit',
+    )
     
 打开你的博客应用下的*model.py*文件添加django-taggit提供的*TaggableManager* manager给*Post* model，代码如下：
     
-    from taggit.managers import TaggableManager    class Post(models.Model):        # ...        tags = TaggableManager()
+    from taggit.managers import TaggableManager
+    class Post(models.Model):
+        # ...
+        tags = TaggableManager()
         
 这个tags manager允许你给*Post*对象添加，获取以及移除标签。
 
@@ -388,7 +441,9 @@ Django在博客应用下的*migrations/*目录下生成了一个*0002_comment.py
 
 你会看到如下输出：
     
-    Migrations for 'blog':     0003_post_tags.py:       - Add field tags to post
+    Migrations for 'blog':
+     0003_post_tags.py:
+       - Add field tags to post
 
 现在，运行以下代码在数据库中生成django-taggit model对应的表以及同步你的model的改变：
 
@@ -396,36 +451,182 @@ Django在博客应用下的*migrations/*目录下生成了一个*0002_comment.py
     
 你会看到以下输出：
     
-    Applying taggit.0001_initial... OK    Applying taggit.0002_auto_20150616_2121... OK    Applying blog.0003_post_tags... OK
+    Applying taggit.0001_initial... OK
+    Applying taggit.0002_auto_20150616_2121... OK
+    Applying blog.0003_post_tags... OK
     
 你的数据库现在已经可以使用*django-taggit* model。打开终端运行命令` python manage.py shell`来学习如何使用*tags* manager。首先，我们通过ID匹配来取回我们的其中一篇帖子：
     
-    >>> from blog.models import Post    >>> post = Post.objects.get(id=1)
+    >>> from blog.models import Post
+    >>> post = Post.objects.get(id=1)
 
 之后为它添加一些tags并且取回tags来检查是否添加成功：
 
-    >>> post.tags.add('music', 'jazz', 'django')    >>> post.tags.all()    [<Tag: jazz>, <Tag: django>, <Tag: music>]
+    >>> post.tags.add('music', 'jazz', 'django')
+    >>> post.tags.all()
+    [<Tag: jazz>, <Tag: django>, <Tag: music>]
     
 最后，移除一个tag并且再次检查tags列：
 
-    >>> post.tags.remove('django')    >>> post.tags.all()    [<Tag: jazz>, <Tag: music>]
+    >>> post.tags.remove('django')
+    >>> post.tags.all()
+    [<Tag: jazz>, <Tag: music>]
     
 非常简单，对吧？运行命令`python manage.py runserver`启动开发服务，在浏览器中打开  http://127.0.0.1:8000/admin/taggit/tag/ 。你会看到管理页面包含了*taggit*应用的*Tag*对象列：
-（图片）
+![django-2-9](http://ohqrvqrlb.bkt.clouddn.com/django-2-9.png)
 
 转到 http://127.0.0.1:8000/admin/blog/post/ 并点击一篇帖子进行编辑。你会看到帖子中包含了一个新的**Tags**字段如下所示，你可以非常容易的编辑它：
-（图片）
+![django-2-10](http://ohqrvqrlb.bkt.clouddn.com/django-2-10.png)
 
 现在，我们准备编辑我们的博客来显示这些tags。打开*blog/post/list.html* template在博客的标题下方添加如下代码：
 
     <p class="tags">Tags: {{ post.tags.all|join:", " }}</p>
 
 *join* template filter的功能类似python的`join()`方法，将给予的元素串联在一起成为一个字符串。在浏览器中打开 http://127.0.0.1:8000/blog/ 。 你会看到tags在每一个帖子的标题下面：
-（图片）
+![django-2-11](http://ohqrvqrlb.bkt.clouddn.com/django-2-11.png)
 
 现在，让我们来编辑我们的*post_list* view让用户可以列出打上了特定tag的所有帖子。打开博客应用下的*views.py*文件，导入*Tag* model从*django-taggit*中，然后修改*post_list* view如下所示：
 
-    from taggit.models import Tag    def post_list(request, tag_slug=None): object_list = Post.published.all() tag = None        if tag_slug:            tag = get_object_or_404(Tag, slug=tag_slug) 
-            object_list =   object_list.filter(tags__in=[tag]) # ...
+    from taggit.models import Tag
+    def post_list(request, tag_slug=None): object_list = Post.published.all() tag = None
+        if tag_slug:
+            tag = get_object_or_404(Tag, slug=tag_slug) 
+            object_list =   object_list.filter(tags__in=[tag]) 
+            # ...
+            
+这个view做了以下工作：
+* 1. view带有一个可选的*tag_slug*参数，默认是一个None值。这个参数会带进URL中。
+* 2. view的内部，我们创建了初始的QuerySet，取回所有发布状态的帖子，假如给予一个tag slug，我们通过给予*get_object_or_404()*这个slug来获取到*Tag*对象。
+* 3. 之后我们过滤所有帖子只留下tags中包含给予的tag的帖子。因为有一个多对多的关系，我们必须过滤在给予的tags列中包含的tags，它们在我们的例子中只包含一个元素。
+
+要记住Querysets是惰性的。这个QuerySets只有当我们在template中循环渲染帖子列表才会被执行。
+
+最后，修改view最底部的*render()*函数来传递*tag*变量给template。这个view完成后如下所示：
+
+    def post_list(request, tag_slug=None):
+        object_list = Post.published.all()
+        tag = None
+        if tag_slug:
+            tag = get_object_or_404(Tag, slug=tag_slug)
+            object_list = object_list.filter(tags__in=[tag])
+        paginator = Paginator(object_list, 3) # 3 posts in each page
+        page = request.GET.get('page')
+        try:
+            posts = paginator.page(page)
+        except PageNotAnInteger:
+            # If page is not an integer deliver the first page
+            posts = paginator.page(1)
+        except EmptyPage:
+            # If page is out of range deliver last page of results
+            posts = paginator.page(paginator.num_pages)
+        return render(request, 'blog/post/list.html', {'page': page,
+        'posts': posts,
+        'tag': tag})
+        
+打开博客应用下的*url.py*文件，注释基于类的*PostListView* URL pattern，然后取消*post_list* view的注释，如下所示：
+
+    url(r'^$', views.post_list, name='post_list'),
+    # url(r'^$', views.PostListView.as_view(), name='post_list'),
+    
+再添加以下代码，使用附加的URL参数用来通过tag排序帖子：
+
+    url(r'^tag/(?P<tag_slug>[-\w]+)/$', views.post_list,name='post_list_by_tag'),
+    
+就像你所看到的，两个patterns point都指向了相同的view，但是我们可以给它们不同的命名。第一个patterns会调用*post_list* view不带上任何可选参数。第二个pattern会调用这个view带上*tag_slug*参数。
+
+因为我们要使用*post_list* view,编辑*blog/post/list.html* template修改pagination使用*posts*对象，如下所示：
+
+    {% include "pagination.html" with page=posts %}
+    
+在`{% for %}`循环上方添加如下代码：
+
+    {% if tag %}
+        <h2>Posts tagged with "{{ tag.name }}"</h2>
+    {% endif %}
+    
+如果用户正在访问博客，他会看到包含所有帖子的列。如果他指定一个tag来过滤所有的帖子，他会看到以上的信息。现在，修改tags的显示方式，如下所示：
+
+    <p class="tags">
+        Tags:
+        {% for tag in post.tags.all %}
+            <a href="{% url "blog:post_list_by_tag" tag.slug %}">
+                {{ tag.name }}
+            </a>
+            {% if not forloop.last %}, {% endif %}
+        {% endfor %}
+    </p>
+    
+现在，我们循环一个帖子的所有tags显示一个自定义的链接URL用来通过使用tag过滤帖子。我们通过使用` {% url "blog:post_list_by_tag"
+tag.slug %}`来构建URL，使用URL的命名以及tag slug作为参数。我们使用逗号分离tags。
+
+在浏览器中打开 http://127.0.0.1:8000/blog/ 然后点击任意的tag链接，你会看到通过tag过滤的帖子列，如下所示：
+![django-2-12](http://ohqrvqrlb.bkt.clouddn.com/django-2-12.png)
+
+##获取类似的帖子
+现在我们已经可以给我们的博客帖子打上tag，我们可以通过它们做更多有意思的事情。通过使用tags，我们能够很好的分类我们的博客帖子。拥有类似主题的帖子一般会有几个tags。我们准备创建一个功能通过帖子共享的tags数量来显示类似的帖子。通过这个方法，当一个用户阅读一个帖子，我们可以建议他们去读其他有关联的帖子。
+
+为了给一个指定的帖子获取类似的帖子，我们需要做到以下几点：
+
+* 返回该帖子的所有tags。
+* 返回有带有这些tags的所有帖子。
+* 在返回的帖子列中排除当前的帖子避开再次阅读到相同的帖子。
+* 通过和当前帖子共享的tags数量来排序所有的返回结果。
+* 假设有两个或多个帖子拥有相同数量的tags，推荐最近的帖子。
+* 限制我们想要推荐的帖子数量。
+
+这些步骤可以转换成一个复杂的QuerySet，我们需要包含在我们的*post_detail* view中。打开博客应用中的*view.py*文件，在顶部添加如下导入：
+
+    from django.db.models import Count
+    
+这是Django ORM的*Count*聚合函数。这个函数允许我们处理聚合计算。然后在*post_detail* view的*render()*功能之前添加如下代码：
+
+    # List of similar posts
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids)\
+    .exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags'))\
+    .order_by('-same_tags','-publish')[:4]
+    
+以上代码的解释如下：
+* 1.我们取回了一个包含当前帖子的所有tags的ID的Python list。*values_list()* QuerySet返回元祖包含给予的字段值。我们通过使用`flat=True`处理它获取一个简单的列表类似`[1,2,3,...]`。
+* 2.我们获取所有包含这些tags的帖子除了当前的帖子。
+* 我们使用*Count*聚合函数来生成一个计算字段*same_tags*用来包含共享的tags数量通过查询所有的tags。
+* 我们通过共享的tags数量来排序（降序）结果并且通过*publish*字段来挑选拥有相同共享tags数量的帖子中最近的一条帖子。我们对返回的结果进行切片只保留最前面的4篇帖子。
+
+在*render()*函数中给context字段增加*similar_posts*对象，如下所示：
+
+    return render(request,
+                    'blog/post/detail.html',
+                    {'post': post,
+                    'comments': comments,
+                    'comment_form': comment_form,
+                    'similar_posts': similar_posts})
+                    
+
+现在，编辑*blog/post/detail.html* template在帖子评论列前添加如下代码：
+
+    <h2>Similar posts</h2>
+    {% for post in similar_posts %}
+        <p>
+            <a href="{{ post.get_absolute_url }}">{{ post.title }}</a>
+        </p>
+    {% empty %}
+        There are no similar posts yet.
+    {% endfor %}
+    
+你也可以在你的帖子详情template中添加tags的列来推荐类似的帖子通过我们在帖子列表tempalte中使用的同样方法。现在，你的帖子详情页面看上去如下所示：
+![django-2-13](http://ohqrvqrlb.bkt.clouddn.com/django-2-13.png)
+
+你已经成功的为你的用户推荐了类似的帖子。*django-taggit*还内置了一个`similar_objects()* manager使你可以用来通过共享的tags返回所有对象。你可以看到所有的jango-taggit managers通过访问 http://django-taggit.
+readthedocs.org/en/latest/api.html 。
+
+##总结
+在这章中，你学习了如何使用Django的表单和model表单。你创建了一个系统通过email用来分享你的站点内容，还创建了一个评论系统给你的博客。你为你的帖子增加了打tags的功能，集成了一个可复用的应用，同时，你创建了一个复杂的QuerySets用来返回类似的对象。
+
+在下一章中，你会学习到如何创建自定义的temaplate tags和filters。你还会构建一个自定义的站点地图和RSS，然后集成一个高级的搜索引擎在你的应用中
+
+##译者总结：
+第二章翻译的速度超出之前的预期（**渣翻**当然速度快- -|||），在翻译成中文的过程中，我也终于想通了之前看这章时产生的很多困惑点，因为需要根据上下文以及代码执行情况来翻译成最接近原意的中文。接下来要开始翻译第三章，第三章最后集成搜索引擎的部分我非常排斥，因为这部分照书的操作下来竟然是失败的。。。再看吧，也许通过翻译我能最终执行成功。不过在翻译第三章之前，我要花点时间编辑下前两章的翻译，修改一些语句不通的地方，以及加入更多的我自己学习过程中的理解，就这样。
+
 
 
