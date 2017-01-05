@@ -3,7 +3,8 @@
 * 学习和提升英文阅读能力
 * 掌握和提升Django技能
 
-单词对照
+单词对照表
+
 
 ## 章节及翻译进度：
 ### [第一章：创建一个Blog应用](https://github.com/Django-By-Example-ZH/Django-By-Example-ZH/blob/master/Django%20By%20Example%E7%AC%AC%E4%B8%80%E7%AB%A0%E7%BF%BB%E8%AF%91.md)
@@ -51,7 +52,7 @@
 ####使用基于类的视图（views） （*完成 by 夜夜月月 2016年12月10日*）
 ####总结 （*完成 by 夜夜月月 2016年12月10日*）
 
-### 使用高级特性来优化你的博客
+### [第二章 使用高级特性来优化你的博客](https://github.com/Django-By-Example-ZH/Django-By-Example-ZH/blob/master/Django%20By%20Example%E7%AC%AC%E4%BA%8C%E7%AB%A0%E7%BF%BB%E8%AF%91.md)
 ####通过e-mail分享帖子
 
 * 使用Django创建表单
