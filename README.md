@@ -1,4 +1,8 @@
 # 《Django By Example》中文翻译
+
+## 书籍出处： https://www.packtpub.com/web-development/django-example
+## 原作者： Antonio Melé
+
 ## 翻译用途：
 * 学习和提升英文阅读能力
 * 掌握和提升Django技能
