@@ -5,7 +5,7 @@
 
 在上一章中，你创建了一个基础的博客应用。现在你将要改造它成为一个功能更加齐全的博客，利用一些高级的特性例如通过email来分享帖子，添加评论，给帖子打上tag，检索出相似的帖子。在本章中，你将会学习以下几点：
 
-* 使用Django发送email
+* 使用Django发送email[--《Django By Example》第五章 中文翻译（个人学习，渣翻）--](media/--%E3%80%8ADjango%20By%20Example%E3%80%8B%E7%AC%AC%E4%BA%94%E7%AB%A0%20%E4%B8%AD%E6%96%87%E7%BF%BB%E8%AF%91%EF%BC%88%E4%B8%AA%E4%BA%BA%E5%AD%A6%E4%B9%A0%EF%BC%8C%E6%B8%A3%E7%BF%BB%EF%BC%89--.md)
 * 在views中创建并操作表单
 * 通过models创建表单
 * 构建复杂的QuerySets
