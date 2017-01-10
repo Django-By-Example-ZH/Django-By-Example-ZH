@@ -2,6 +2,7 @@
 
 中介模型（intermediate model）
 查询集（QuerySets）
+活动流（activity stream）
 
 ## 跟踪用户动作
 
@@ -121,13 +122,164 @@ urlpatterns = [       # ...       url(r'^users/$', views.user_list, name='user
 
 我们会使用 `user_detail` URL模式来给用户生成规范的URL。你之前就在模型（model）中定义了一个`get_absolute_url()`方法来为每个对象返回规范的URL。另外一种方式为一个模型（model）指定一个URL是为你的项目添加*ABSOLUTE_URL_OVERRIDES*设置。
 
-编辑你的项目的*setting.py*文件，添加如下代码：
+编辑项目中的*setting.py*文件，添加如下代码：
 
 ```python
 ABSOLUTE_URL_OVERRIDES = {    'auth.user': lambda u: reverse_lazy('user_detail',                                        args=[u.username])}
 ```
 
+Django会为所有出现在*ABSOLUTE_URL_OVERRIDES*设置中的模型（models）动态添加一个`get_absolute_url()`方法。这个方法会给设置中指定的模型返回规范的URL。我们给传入的用户返回*user_detail* URL。现在你可以在一个User实例上使用`get_absolute_url()`来取回他自身的规范URL。打开Python shell输入命令`python manage.py shell`运行以下代码来进行测试：
 
+```
+>>> from django.contrib.auth.models import User>>> user = User.objects.latest('id')>>> str(user.get_absolute_url())'/account/users/ellington/'
+```
+
+返回的URL如同期望的一样。我们需要为我们刚才创建的视图（views）创建模板（templates）。在*account*应用下的*templates/account/目录下添加以下目录和文件：
+
+```
+/user/
+    detail.html
+    list.html
+```
+
+编辑*account/user/list.html*模板（template）给它添加如下代码：
+
+```html
+{% extends "base.html" %}{% load thumbnail %}{% block title %}People{% endblock %}{% block content %}    <h1>People</h1>    <div id="people-list">       {% for user in users %}         <div class="user">            <a href="{{ user.get_absolute_url }}">             {% thumbnail user.profile.photo "180x180" crop="100%" as im %}               <img src="{{ im.url }}">             {% endthumbnail %}           </a>           <div class="info">             <a href="{{ user.get_absolute_url }}" class="title">               {{ user.get_full_name }}             </a> 
+           </div>         </div>       {% endfor %}    </div>{% endblock %}
+```
+
+这个模板（template）允许我们在网站中排列所有可用的用户。我们对给予的用户进行迭代并且使用`{% thumbnail %}模板（template）标签（tag）来生成profile图片缩微图。
+
+打开项目中的*base.html*模板（template），在以下菜单项的*href*属性中包含*user_list*URL：
+
+```html
+<li {% if section == "people" %}class="selected"{% endif %}>
+    <a href="{% url "user_list" %}">People</a>
+</li>
+```
+
+通过命令`python manage.py runserver`启动开发服务器然后在浏览器打开 http://127.0.0.1:8000/account/users/ 。你会看到如下所示的用户列：
+
+![django-6-1](http://ohqrvqrlb.bkt.clouddn.com/django-6-1.png)
+
+（译者注：图灵，特斯拉，爱因斯坦，都是大牛啊）
+
+编辑*account*应用下的*account/user/detail.html*模板，添加如下代码：
+
+```html
+{% extends "base.html" %}{% load thumbnail %}{% block title %}{{ user.get_full_name }}{% endblock %}{% block content %}    <h1>{{ user.get_full_name }}</h1>    <div class="profile-info">    {% thumbnail user.profile.photo "180x180" crop="100%" as im %}        <img src="{{ im.url }}" class="user-detail">    {% endthumbnail %}    </div>    {% with total_followers=user.followers.count %}    <span class="count">        <span class="total">{{ total_followers }}</span>        follower{{ total_followers|pluralize }}    </span>    <a href="#" data-id="{{ user.id }}" data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="followbutton">        {% if request.user not in user.followers.all %}
+            Follow
+        {% else %}
+            Unfollow
+        {% endif %}
+    </a>
+    <div id="image-list" class="imget-container">
+        {% include "images/image/list_ajax.html" with images = user.images_create.all %}
+    </div>
+    {% endwith %}
+{% endblock %}
+```
+
+在详情模板（template）中我们展示用户profile并且我们使用`{% thumbnail %}`模板（template）标签（tag）来显示profile图片。我们显示粉丝的总数以及一个链接可以 *follow/unfollow* 该用户。我们会隐藏关注链接当用户在查看他们自己的profile，防止用户自己关注自己。我们会执行一个AJAX请求来 *follow/unfollow* 一个指定用户。我们给 `<a>` HTML元素添加*data-id*和*data-action*属性包含用户ID以及当该链接被点击的时候会执行的初始操作，*follow/unfollow* ，这个操作依赖当前页面的展示的用户是否已经被正在浏览的用户所关注。我们展示当前页面用户的图片书签通过*list_ajax.html*模板。
+
+再次打开你的浏览器，点击一个拥有图片书签的用户链接，你会看到一个profile详情如下所示：
+
+![django-6-2](http://ohqrvqrlb.bkt.clouddn.com/django-6-2.png)
+
+### 创建一个AJAX视图（view）来关注用户
+
+我们将会创建一个简单的视图（view）使用AJAX来 *follow/unfollow* 用户。编辑*account*应用中的*views.py*文件添加如下代码：
+
+```python
+from django.http import JsonResponsefrom django.views.decorators.http import require_POSTfrom common.decorators import ajax_requiredfrom .models import Contact@ajax_required@require_POST@login_requireddef user_follow(request):    user_id = request.POST.get('id')    action = request.POST.get('action')    if user_id and action:        try:            user = User.objects.get(id=user_id)            if action == 'follow':                Contact.objects.get_or_create(                    user_from=request.user,                    user_to=user)            else:                Contact.objects.filter(user_from=request.user,                                        user_to=user).delete()            return JsonResponse({'status':'ok'})        except User.DoesNotExist:            return JsonResponse({'status':'ko'})    return JsonResponse({'status':'ko'})
+```
+
+*user_follow*视图（view）有点类似与我们之前创建的*image_like*视图（view）。因为我们使用了一个定制中介模型给用户的多对多关系，所以*ManyToManyField*管理器默认的`add()`和`remove()`方法将不可用。我们使用中介*Contact*模型（model）来创建或删除用户关系。
+
+在*account*应用中的*urls.py*文件中导入你刚才创建的视图（view）然后为它添加URL模式：
+
+```python
+    url(r'^users/follow/$', views.user_follow, name='user_follow'),
+```
+
+请确保你放置的这个URL模式的位置在*user_detail*URL模式之前。否则，任何对 */users/follow/* 的请求都会被*user_detail*模式给正则匹配然后执行。请记住，每一次的HTTP请求Django都会对每一条存在的URL模式进行匹配直到第一条匹配成功才会停止继续匹配。
+
+编辑*account*应用下的*user/detail.html*模板添加如下代码：
+
+```javascript
+{% block domready %}     $('a.follow').click(function(e){       e.preventDefault();       $.post('{% url "user_follow" %}',         {           id: $(this).data('id'),           action: $(this).data('action')         },         function(data){           if (data['status'] == 'ok') {             var previous_action = $('a.follow').data('action');
+                          // toggle data-action             $('a.follow').data('action',               previous_action == 'follow' ? 'unfollow' : 'follow');             // toggle link text             $('a.follow').text(               previous_action == 'follow' ? 'Unfollow' : 'Follow');
+                            // update total followers             var previous_followers = parseInt(               $('span.count .total').text());             $('span.count .total').text(previous_action == 'follow' ? previous_followers + 1 : previous_followers - 1);          }
+        }      });    });{% endblock %}
+```
+
+这段JavaScript代码执行AJAX请求来关注或不关注一个指定用户并且触发 *follow/unfollow* 链接。我们使用jQuery去执行AJAX请求的同时会设置 *follow/unfollow* 两种链接的*data-aciton*属性以及HTML`<a>`元素的文本基于它上一次的值。当AJAX操作执行完成，我们还会对显示在页面中的粉丝总数进行更新。打开一个存在的用户的详情页面，然后点击**Follow**链接尝试下我们刚才构建的功能是否正常。
+
+### 创建一个通用的活动流应用
+
+许多社交网站会给他们的用户显示一个活动流，这样他们可以跟踪其他用户在平台中的操作。一个活动流是一个用户或一个用户组最近活动的列表。举个例子，*Facebook*的*News Feed*就是一个活动流。用户X给Y图片打上了书签或者用户X关注了用户Y也是例子操作。我们将会构建一个活动流应用这样每个用户都能看到他关注的用户最近进行的交互。为了做到上述功能，我们需要一个模型（modes）来保存用户在网站上的操作执行，还需要一个简单的方法来添加操作给feed。
+
+运行以下命令在你的项目中创建一个新的应用命名为*actions*：
+
+```python
+django-admin startapp actions
+```
+
+在你的项目中的*settings.py*文件中的*INSTALLED_APPS*设置中添加*'actions'*，这样可以让Django知道这个新的应用是可用状态：
+
+```python
+INSTALLED_APPS = (
+    # ...
+    'actions',    
+)
+```
+
+编辑*account*应用下的*models.py*文件添加如下代码：
+
+```python
+from django.db import modelsfrom django.contrib.auth.models import User
+class Action(models.Model):    user = models.ForeignKey(User,                            related_name='actions',                            db_index=True)    verb = models.CharField(max_length=255)    created = models.DateTimeField(auto_now_add=True,                                    db_index=True)
+                                        class Meta:        ordering = ('-created',)
+```
+
+这个*Action*模型（model）将会用来记录用户的活动。模型（model）中的字段解释如下：
+
+* user：执行该操作的用户。这个一个指向Django *User*模型（model）的 *ForeignKey*。
+* verb：这是用户执行操作的动作描述。
+* created：这个时间日期会在动作执行的时候创建。我们使用`auto_now_add=True`来动态设置它为当前的时间当这个对象第一次被保存在数据库中。
+
+通过这个基础模型（model），我们只能够存储操作例如用户X做了哪些事情。我们需要一个额外的*ForeignKey*字段为了保存操作会涉及到的一个*target*（目标）对象，例如用户X给图片Y打上了暑期那或者用户X现在关注了用户Y。就像你之前知道的，一个普通的*ForeignKey*只能指向一个其他的模型（model）。但是，我们需要一个方法，可以让操作的*target*（目标）对象是任何一个已经存在的模型（model）的实例。这个场景就由Django内容类型框架来上演。
+
+### 使用内容类型框架
+
+Django包含了一个内容类型框架位于*django.contrib.contenttypes*。这个应用可以跟踪你的项目中所有的模型（models）以及提供一个通用接口来与你的模型（models）进行交互。
+
+当你使用*startproject*命令创建一个新的项目的时候这个*contenttypes*应用就被默认包含在*INSTALLED_APPS*设置中。它被其他的*contrib*包使用，例如认证(authentication）框架以及admin应用。
+
+*contenttypes*应用包含一个*ContentType*模型（model）。这个模型（model）的实例代表了你的应用中真实存在的模型（models），并且新的*ContentTYpe*实例会动态的创建当新的模型（models）安装在你的项目中。*ContentType*模型（model）有以下字段：
+
+* app_label：模型（model）属于的应用名，它会自动从模型（model）*Meta*选项中的*app_label*属性获取到。举个例子：我们的*Image*模型（model）属于*images*应用
+* model：模型（model）类的名字
+* name：模型的可读名，它会自动从模型（model）*Meta*选项中的*verbose_name*获取到。
+
+让我们看一下我们如何实例化*ContentType*对象。打开Python终端使用`python manage.py shell`命令。你可以获取一个指定模型（model）对应的*ContentType*对象通过执行一个带有*app_label*和*model*属性的查询，例如：
+
+```python
+>>> from django.contrib.contenttypes.models import ContentType>>> image_type = ContentType.objects.get(app_label='images',model='image')>>> image_type<ContentType: image>
+```
+
+你还能反过来获取到模型（model）类从一个*ContentType*对象中通过调用它的`model_class()`方法：
+
+```python
+>>> from images.models import Image>>> ContentType.objects.get_for_model(Image)<ContentType: image>
+```
+
+以上就是内容类型的一些例子。Django提供了更多的方法来使用他们进行工作。你可以访问 https://docs.djangoproject.com/en/1.8/ref/contrib/contenttypes/ 找到关于内容类型框架的官方文档。
+
+### 添加通用的关系给你的模型（models）
+
+在通用关系中*ContentType*对象扮演指向模型（model）的角色被关联所使用。你需要3个字段在模型（model）中组织一个通用关系：
 
 
 
