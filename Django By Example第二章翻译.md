@@ -321,6 +321,7 @@ Django在博客应用下的*migrations/*目录下生成了一个*0002_comment.py
         return render(request,
               'blog/post/detail.html',
               {'post': post,
+              'new_comment': new_comment,
               'comments': comments, 
               'comment_form': comment_form})
 
