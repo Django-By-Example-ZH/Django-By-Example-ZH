@@ -10,7 +10,7 @@
 # 第一章
 ## 创建一个blog应用
 
-在这本书中，你将学习如何创建完整的Django项目，可以在生产环境中使用。假如你还没有安装Django，在本章的第一部分你将学习如何安装。本章会覆盖如何使用Django去创建一个简单的blog应用。本章的目的是使你对该框架的工作有个基本概念，了解不同的组件之间是如何产生交互，并且教你一些技能通过使用一些基本功能方便的创建Djang项目。你会被引导创建一个完整的项目但是不会对所有的细节都进行详细说明。不同的框架组件将在本书接下来的章节中进行介绍。
+在这本书中，你将学习如何创建完整的Django项目，可以在生产环境中使用。假如你还没有安装Django，在本章的第一部分你将学习如何安装。本章会覆盖如何使用Django去创建一个简单的blog应用。本章的目的是使你对该框架的工作有个基本概念，了解不同的组件之间是如何产生交互，并且教你一些技能通过使用一些基本功能方便地创建Djang项目。你会被引导创建一个完整的项目但是不会对所有的细节都进行详细说明。不同的框架组件将在本书接下来的章节中进行介绍。
 本章会覆盖以下几点：
 
 * 安装Django并创建你的第一个项目
@@ -23,7 +23,7 @@
 
 ## 安装Django
 
-如果你已经安装好了Django，你可以直接略过这部分跳到*创建你的第一个项目*。Django是一个Python包因此可以安装在任何的python的环境中。如果你还没有安装Django，这里有一个快速的指南帮助你安装Django用来本地开发。
+如果你已经安装好了Django，你可以直接略过这部分跳到*创建你的第一个项目*。Django是一个Python包因此可以安装在任何的Python的环境中。如果你还没有安装Django，这里有一个快速的指南帮助你安装Django用来本地开发。
 
 Django需要在Python2.7或者3版本上才能更好的工作。在本书的例子中，我们将使用Python 3。如果你使用Linux或者Max OSX，你可能已经有安装好的Python。如果你不确定你的计算机中是否安装了Python，你可以在终端中输入 *python* 来确定。如果你看到以下类似的提示，说明你的计算机中已经安装好了Python:
 
@@ -180,19 +180,19 @@ python manage.py runserver 127.0.0.1:8001 \
 --settings=mysite.settings
 ```
 
-这个命令迟早会对处理需要不同设置的多套环境启到作用。记住，这个服务器只是单纯用来开发，不适合在生产环境中使用。为了在生产环境中部署Django，你需要使用真实的web服务让它运行成一个WSGI应用例如Apache，Gunicorn或者uWSGI**（译者注：强烈推荐 nginx+uwsgi+Django）**。你能够获取到更多的信息关于如何在不同的web服务中部署Django，访问 https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/ 。
+这个命令迟早会对处理需要不同设置的多套环境启到作用。记住，这个服务器只是单纯用来开发，不适合在生产环境中使用。为了在生产环境中部署Django，你需要使用真实的web服务让它运行成一个WSGI应用例如Apache，Gunicorn或者uWSGI**（译者注：强烈推荐 nginx+uwsgi+Django）**。你能够获取到更多关于如何在不同的web服务中部署Django的信息，访问 https://docs.djangoproject.com/en/1.8/howto/deployment/wsgi/ 。
 
 本书外额外的需要下载的章节*第十三章,Going Live*包含为你的Django项目设置一个生产环境。
 
 ##项目设置
 
-让我们打开settings.py文件来看看你的项目的配置。在该文件中有许多设置是Django内置的，但这些只是所有Django可用配置的一部分。你可以看到所有的设置和它们默认的值通过访问 https://docs.djangoproject.com/en/1.8/ref/settings/ 。
+让我们打开settings.py文件来看看你的项目的配置。在该文件中有许多设置是Django内置的，但这些只是所有Django可用配置的一部分。你可以通过访问 https://docs.djangoproject.com/en/1.8/ref/settings/ 看到所有的设置和它们默认的值。
 
 以下列出的设置非常值得一看：
 
-* DEBUG 一个布尔型用来开启或关闭项目的debug模式。如果设置为True，Django将会显示一个详细的错误页面当你的应用抛出一个未被捕获的异常。当你准备部署项目到生产环境，请记住一定要关闭debug模式。永远不要在生产环境中部署一个打开debug模式的站点因为那会暴露你的项目中的敏感数据。
-* ALLOWED_HOSTS 当debug模式开启或者运行测试的时候不会起作用**（译者注：最新的Django版本中，不管有没有开启debug模式该设置都会启作用）**。一旦你准备部署你的项目到生产环境并且关闭了debug模式，你就必须添加你的域或host在这个设置中为了允许你的域或host访问你的Django项目。
-* INSTALLED_APPS 这个设置你在所有的项目中都需要编辑。这个设置告诉Django有哪些应用会激活在这个项目中。默认的，Django包含以下应用：
+* DEBUG 一个布尔型用来开启或关闭项目的debug模式。如果设置为True，当你的应用抛出一个未被捕获的异常时Django将会显示一个详细的错误页面。当你准备部署项目到生产环境，请记住一定要关闭debug模式。永远不要在生产环境中部署一个打开debug模式的站点因为那会暴露你的项目中的敏感数据。
+* ALLOWED_HOSTS 当debug模式开启或者运行测试的时候不会起作用**（译者注：最新的Django版本中，不管有没有开启debug模式该设置都会启作用）**。一旦你准备部署你的项目到生产环境并且关闭了debug模式，为了允许访问你的Django项目你就必须添加你的域或host在这个设置中。
+* INSTALLED_APPS 这个设置你在所有的项目中都需要编辑。这个设置告诉Django有哪些应用会在这个项目中激活。默认的，Django包含以下应用：
   * django.contrib.admin：这是一个管理站点。
   * django.contrib.auth：这是一个权限框架。
   * django.contrib.contenttypes：这是一个内容类型的框架。
@@ -204,10 +204,10 @@ python manage.py runserver 127.0.0.1:8001 \
 * DATABASES 是一个包含了所有在项目中使用的数据库的设置的字典。里面一定有一个默认的数据库。默认的配置使用的是SQLite3数据库。
 * LANGUAGE_CODE 定义Django站点的默认语言编码。
 
-不要担心你目前还看不懂这些设置的含义。你将会熟悉这些设置在之后的章节中。
+不要担心你目前还看不懂这些设置的含义。你将会在之后的章节中熟悉这些设置。
 
 ##项目和应用
-贯穿全书，你会反复的读到项目和应用的地位。在Django中，一个项目被认为是一个安装了一些设置的Django；一个应用是一个包含模型（models），视图（views），模板（templates）以及URLs的组合。应用之间的交互通过Django框架提供的一些特定功能，并且应用可能被各种各样的项目重复使用。你可以认为项目就是你的网站，这个网站包含多续的应用，例如blog，wiki或者论坛，这些应用都可以被其他的项目使用。**（译者注：我去，我竟然漏翻了这一节- -|||，罪过罪过，阿米头发）**
+贯穿全书，你会反复的读到项目和应用的地位。在Django中，一个项目被认为是一个安装了一些设置的Django；一个应用是一个包含模型（models），视图（views），模板（templates）以及URLs的组合。应用之间的交互通过Django框架提供的一些特定功能，并且应用可能被各种各样的项目重复使用。你可以认为项目就是你的网站，这个网站包含多个应用，例如blog，wiki或者论坛，这些应用都可以被其他的项目使用。**（译者注：我去，我竟然漏翻了这一节- -|||，罪过罪过，阿米头发）**
 
 ##创建一个应用
 
@@ -238,7 +238,7 @@ blog/
 
 ##设计blog数据架构
 
-我们将要开始为你的blog设计初始的数据模型（models）。一个模型（model）就是一个Python类，该类继承了*django.db.models.model*,在其中的每一个属性表示一个数据库字段。Djnago将会为*models.py*中的每一个定义的模型（model）创建一张表。当你创建好一个模型（model），Django会提供一个非常实用的API来方便的查询数据库。
+我们将要开始为你的blog设计初始的数据模型（models）。一个模型（model）就是一个Python类，该类继承了*django.db.models.model*,在其中的每一个属性表示一个数据库字段。Django将会为*models.py*中的每一个定义的模型（model）创建一张表。当你创建好一个模型（model），Django会提供一个非常实用的API来方便的查询数据库。
 
 首先，我们定义一个*POST*模型（model）。在blog应用下的*models.py*文件中添加以下内容：
 
@@ -246,6 +246,8 @@ blog/
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+
+
 class Post(models.Model):
     STATUS_CHOICES = (
         ('draft', 'Draft'),
@@ -266,6 +268,7 @@ class Post(models.Model):
                             
     class Meta:
         ordering = ('-publish',)
+		
     def __str__(self):
         return self.title
 ```
@@ -273,7 +276,7 @@ class Post(models.Model):
 这就是我们给blog帖子使用的基础模型（model）。让我们来看下刚才在这个模型（model）中定义的各个字段含义：
 
 * title： 这个字段对应帖子的标题。它是*CharField*，在SQL数据库中会被转化成VARCHAR。
-* slug：这个字段将会在URLs中使用。slug就是一个短标签，该标签只包含字母，数字，下划线或连接线。我们将通过使用slug字段给我们的blog帖子构建漂亮的，友好的URLs。我们给该字段添加了*unique_for_date*参数，这样我们就可以使用日期和帖子的slug来为所有帖子构建URLs。我们可以给每个帖子使用日期和slug来构建URLs通过添加 unique_for_date参数给这个字段。在相同的日期中Django会阻止多篇帖子拥有相同的slug。
+* slug：这个字段将会在URLs中使用。slug就是一个短标签，该标签只包含字母，数字，下划线或连接线。我们将通过使用slug字段给我们的blog帖子构建漂亮的，友好的URLs。我们给该字段添加了*unique_for_date*参数，这样我们就可以使用日期和帖子的slug来为所有帖子构建URLs。在相同的日期中Django会阻止多篇帖子拥有相同的slug。
 * author：这是一个*ForeignKey*。这个字段定义了一个多对一（many-to-one）的关系。我们告诉Django一篇帖子只能由一名用户编写，一名用户能编写多篇帖子。根据这个字段，Django将会在数据库中通过有关联的模型（model）主键来创建一个外键。在这个场景中，我们关联上了Django权限系统的*User*模型（model）。我们通过*related_name*属性指定了从*User*到*Post*的反向关系名。我们将会在之后学习到更多关于这方面的内容。
 * body：这是帖子的主体。它是*TextField*，在SQL数据库中被转化成*TEXT*。
 * publish：这个日期表明帖子什么时间发布。我们使用Djnago的*timezone*的*now*方法来设定默认值。This is just a timezone-aware datetime.now**（译者注：这句该咋翻译好呢）**。
@@ -281,7 +284,7 @@ class Post(models.Model):
 * updated：这个日期表明帖子什么时候更新。因为我们在这儿使用了*auto_now*，当我们更新保存一个对象的时候这个字段将会自动更新到当前日期。
 * status：这个字段表示当前帖子的展示状态。我们使用了一个*choices*参数，这样这个字段的值只能是给予的选择参数中的某一个值。**（译者注：传入元组，比如`(1,2)`，那么该字段只能选择1或者2，没有其他值可以选择）**
 
-就像你所看到的的，Django内置了许多不同的字段类型给你使用，这样你就能够定义你自己的模型（models）。你可以找到所有的字段类型通过访问 https://docs.djangoproject.com/en/1.8/ref/models/fields/
+就像你所看到的的，Django内置了许多不同的字段类型给你使用，这样你就能够定义你自己的模型（models）。通过访问 https://docs.djangoproject.com/en/1.8/ref/models/fields/ 你可以找到所有的字段类型。
 
 在模型（model）中的类*Meta*包含元数据。我们告诉Django查询数据库的时候默认返回的是根据*publish*字段进行降序排列过的结果。我们使用负号来指定进行降序排列。
 
@@ -296,7 +299,7 @@ class Post(models.Model):
 Django内置对时区日期处理的支持。你可以在你的项目中的*settings.py*文件中通过*USE_TZ*来设置激活或停用对时区的支持。当你通过*startproject*命令来创建一个新项目的时候这个设置默认为*True*。
 
 ##激活你的应用
-为了让Django能保持跟踪你的应用并且根据你的应用中的模型（models）来创建数据库表，我们必须激活你的应用。因此，编辑*settings.py*文件在*INSTALLED_APPS*设置中添加*blog*。看上去如下所示：
+为了让Django能保持跟踪你的应用并且根据你的应用中的模型（models）来创建数据库表，我们必须激活你的应用。因此，编辑*settings.py*文件，在*INSTALLED_APPS*设置中添加*blog*。看上去如下所示：
 ```python
 INSTALLED_APPS = ( 
     'django.contrib.admin',    
@@ -326,9 +329,9 @@ Migrations for 'blog':
         - Create model Post
 ```
 
-Django刚才在blog应用下的migrations目录中创建了一个*0001——initial.py*文件。你可以打开这个文件来看下一个数据库迁移的内容。
+Django在blog应用下的migrations目录中创建了一个*0001——initial.py*文件。你可以打开这个文件来看下一个数据库迁移的内容。
 
-让我们来看下Django根据我们的模型（model）将会为在数据库中创建的表格而执行的SQL代码。*sqlmigrate*命令带上数据库迁移（migration）的名字将会返回它们的SQL，但不会立即去执行。运行以下命令来看下输出：
+让我们来看下Django根据我们的模型（model）将会为在数据库中创建的表而执行的SQL代码。*sqlmigrate*命令带上数据库迁移（migration）的名字将会返回它们的SQL，但不会立即去执行。运行以下命令来看下输出：
 
     python manage.py sqlmigrate blog 0001
     
@@ -341,9 +344,9 @@ CREATE INDEX "blog_post_4f331e2f" ON "blog_post" ("author_id");
 COMMIT;
 ```    
 
-Django会根据你正在使用的数据库进行以上精准的输出。以上SQL语句是为SQLite数据库准备的。如你所见，Django生成的表名前缀为应用名之后跟上模型（modle）的小写（blog_post），但是你也可以指定表名通过在模型（models）的*Meta*类中使用*db_table*属性进行指定。Django会自动为每个模型（model）创建一个主键，但是你也可以自己指定主键通过设置*primarry_key=True*在模型（model）中的某个字段上。
+Django会根据你正在使用的数据库进行以上精准的输出。以上SQL语句是为SQLite数据库准备的。如你所见，Django生成的表名前缀为应用名之后跟上模型（model）的小写（blog_post），但是你也可以通过在模型（models）的*Meta*类中使用*db_table*属性来指定表名。Django会自动为每个模型（model）创建一个主键，但是你也可以通过在模型（model）中的某个字段上设置*primarry_key=True*来指定主键。
 
-让我们根据新模型（model）来同步数据库。运行以下的命令来应用存在的数据迁移（migrations）：
+让我们根据新模型（model）来同步数据库。运行以下的命令来应用已存在的数据迁移（migrations）：
 
     python manage.py migrate
     
@@ -351,9 +354,9 @@ Django会根据你正在使用的数据库进行以上精准的输出。以上SQ
 
     Applying blog.0001_initial... OK
     
-我们刚刚为*INSTALLED_APPS*中所有的应用进行了数据库迁移（migrations），包括我们的*blog*应用。在进行了数据库迁移（migrations）之后，数据库会映射我们模型的当前状态。
+我们刚刚为*INSTALLED_APPS*中所有的应用进行了数据库迁移（migrations），包括我们的*blog*应用。在进行了数据库迁移（migrations）之后，数据库会反映我们模型的当前状态。
 
-如果你编辑了*models.py*文件为了添加，删除，还是改变了存在的模型（models）中字段，或者你添加了新的模型（models），你都需要做一次新的数据库迁移（migration）通过使用*makemigrations*命令。数据库迁移（migration）允许Django来保持对模型（model）改变的跟踪。之后你必须通过*migrate*命令来保持数据库与我们的模型（models）同步。
+如果为了添加，删除，或是改变了存在的模型（models）中字段，或者你添加了新的模型（models）而编辑了*models.py*文件，你都需要通过使用*makemigrations*命令做一次新的数据库迁移（migration）。数据库迁移（migration）允许Django来保持对模型（model）改变的跟踪。之后你必须通过*migrate*命令来保持数据库与我们的模型（models）同步。
 
 ##为你的模型（models）创建一个管理站点
 现在我们已经定义好了*Post*模型（model），我们将要创建一个简单的管理站点来管理blog帖子。Django内置了一个管理接口，该接口对编辑内容非常的有用。这个Django管理站点会根据你的模型（model）元数据进行动态构建并且提供一个可读的接口来编辑内容。你可以对这个站点进行自由的定制，配置你的模型（models）在其中如何进行显示。
