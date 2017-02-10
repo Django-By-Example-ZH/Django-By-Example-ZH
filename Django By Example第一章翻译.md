@@ -385,7 +385,7 @@ Superuser created successfully.
 使用你在上一步中创建的超级用户信息进行登录。你将会看到管理站点的首页，如下所示：
 ![django-1-3](http://upload-images.jianshu.io/upload_images/3966530-80c83f3a385f13c1.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-*Group*和*User* 模型（models） 是Django权限管理框架的一部分位于*django.contrib.auth*。如果你点击*Users*，你将会看到你之前创建的用户信息。你的blog应用的*Post*模型（model）和*User*（model）关联在了一起。记住，它们是通过*author*字段进行关联的。
+*Group*和*User* 模型（models） 位于*django.contrib.auth*，是Django权限管理框架的一部分。如果你点击*Users*，你将会看到你之前创建的用户信息。你的blog应用的*Post*模型（model）和*User*（model）关联在了一起。记住，它们是通过*author*字段进行关联的。
 
 ##在管理站点中添加你的模型（models）
 让我们在管理站点中添加你的blog模型（models）。编辑blog应用下的*admin.py*文件，如下所示：
@@ -414,7 +414,7 @@ Django给不同类型的字段使用了不同的表单控件。即使是复杂�
 ##定制models的展示形式
 现在我们来看下如何定制管理站点。编辑blog应用下的*admin.py*文件，使之如下所示：
 
- ```python   
+```python   
 from django.contrib import admin
 from .models import Post
 
@@ -424,9 +424,9 @@ class PostAdmin(admin.ModelAdmin):
 admin.site.register(Post, PostAdmin)
 ```
     
-我们使用继承了*ModelAdmin*的定制类来告诉Django管理站点中需要注册我们自己的模型（model）。在这个类中，我们可以包含一些信息关于如何在管理站点中展示模型（model）以及如何与该模型（model）进行交互。*list_display*属性允许你在设置一些你想要在管理对象列表页面显示的模型（model）字段。
+我们使用继承了*ModelAdmin*的定制类来告诉Django管理站点中需要注册我们自己的模型（model）。在这个类中，我们可以包含一些关于如何在管理站点中展示模型（model）的信息以及如何与该模型（model）进行交互。*list_display*属性允许你在设置一些你想要在管理对象列表页面显示的模型（model）字段。
 
-让我们来通过更多的选项来定制管理模型（model），如使用以下代码：
+让我们通过更多的选项来定制管理模型（model），如使用以下代码：
 
 ```python
 class PostAdmin(admin.ModelAdmin):
@@ -443,15 +443,15 @@ class PostAdmin(admin.ModelAdmin):
 回到浏览器刷新管理站点页面，现在应该如下所示：
 ![django-1-7](http://upload-images.jianshu.io/upload_images/3966530-3b8a79f28e1a04de.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
-你可以看到帖子列页面中展示的字段都是你在*list-dispaly*属性中指定的。这个列页面现在包含了一个右侧边栏允许你根据*list_filter*属性中指定的字段来过滤返回结果。一个搜索框也在应用在页面中。这是因为我们还定义了一个搜索字段列通过使用*search_fields*属性。在搜索框的下方，有个可以通过时间层快速导航的栏，该栏通过定义*date_hierarchy*属性出现。你还能看到这些帖子默认的通过*Status*和*Publish*列进行排序。这是因为你指定了默认排序通过使用*ordering*属性。
+你可以看到帖子列页面中展示的字段都是你在*list-dispaly*属性中指定的。这个列页面现在包含了一个右侧边栏允许你根据*list_filter*属性中指定的字段来过滤返回结果。一个搜索框也应用在页面中。这是因为我们还通过使用*search_fields*属性定义了一个搜索字段列。在搜索框的下方，有个可以通过时间层快速导航的栏，该栏通过定义*date_hierarchy*属性出现。你还能看到这些帖子默认的通过*Status*和*Publish*列进行排序。这是因为你通过使用*ordering*属性指定了默认排序。
 
-现在，点击*Add post*链接。你还会在这儿看到一些改变。当你输入完成新帖子的标题，*slug*字段将会自动填充。我们通过使用*prepoupulated_fields*属性告诉Django通过输入的标题来填充*slug*字段。同时，如今的*author*字段展示显示为了一个搜索控件，这样当你的用户量达到成千上万级别的时候比再使用下拉框进行选择更加的人性化，如下图所示：
+现在，点击*Add post*链接。你还会在这儿看到一些改变。当你输入完成新帖子的标题，*slug*字段将会自动填充。我们通过使用*prepoupulated_fields*属性告诉Django通过输入的标题来填充*slug*字段。同时，现在的*author*字段展示显示为了一个搜索控件，这样当你的用户量达到成千上万级别的时候比再使用下拉框进行选择更加的人性化，如下图所示：
 ![django-1-8](http://upload-images.jianshu.io/upload_images/3966530-f89c73f0b51aba4b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 通过短短的几行代码，我们就在管理站点中自定义了我们的模型（model）的展示形式。还有更多的方式可以用来定制Django的管理站点。在这本书的后面，我们还会进一步讲述。
 
 ##使用查询集（QuerySet）和管理器（managers）
-现在，你已经有了一个个完整功能的管理站点来管理你的blog内容，是时候学习如何从数据库中检索信息并且与这些信息进行交互了。Django自带了一个强大的数据库抽象API可以让你轻松的创建，检索，更新以及删除对象。Django的*Object-relational Mapper(ORM)*可以兼容MySQL,PostgreSQL,SQLite以及Oracle。请记住你可以在你项目下的*setting.py*中编辑*DATABASES*设置来指定数据库。Django可以同时与多个数据库进行工作，这样你可以编写数据库路由来操作数据通过任何你喜欢的方式。
+现在，你已经有了一个完整功能的管理站点来管理你的blog内容，是时候学习如何从数据库中检索信息并且与这些信息进行交互了。Django自带了一个强大的数据库抽象API可以让你轻松的创建，检索，更新以及删除对象。Django的*Object-relational Mapper(ORM)*可以兼容MySQL,PostgreSQL,SQLite以及Oracle。请记住你可以在你项目下的*setting.py*中编辑*DATABASES*设置来指定数据库。Django可以同时与多个数据库进行工作，这样你可以编写数据库路由通过任何你喜欢的方式来操作数据。
 
 一旦你创建好了你的数据模型（models），Django会提供你一个API来与它们进行交互。你可以找到数据模型（model）的官方参考文档通过访问 https://docs.djangoproject.com/en/1.8/ref/models/ 。
 
@@ -476,7 +476,7 @@ class PostAdmin(admin.ModelAdmin):
     
     user = User.objects.get(username='admin')
 
-`get()`方法允许你从数据库取回一个单独的对象。注意这个方法只希望有唯一的一个匹配在查询中。如果在数据库中没有返回结果，这个方法会抛出一个*DoesNotExist*异常，如果数据库返回多个匹配结果，将会抛出一个*MultipleObjectsReturned*异常。当查询执行的时候，所有的异常都是模型（model）类的属性。
+`get()`方法允许你从数据库取回一个单独的对象。注意这个方法只希望在查询中有唯一的一个匹配。如果在数据库中没有返回结果，这个方法会抛出一个*DoesNotExist*异常，如果数据库返回多个匹配结果，将会抛出一个*MultipleObjectsReturned*异常。当查询执行的时候，所有的异常都是模型（model）类的属性。
 
 接着，我们来创建一个拥有定制标题标题，slug和内容的*Post*实例，然后我们设置之前取回的user胃这篇帖子的作者如下所示：
     
@@ -488,7 +488,7 @@ class PostAdmin(admin.ModelAdmin):
 
     post.save()
     
-这步操作将会执行一段SQL的插入语句。我们已经知道如何在内存中创建一个对象并且之后才在数据库中进行插入，但是我们也可以直接在数据库中创建对象通过使用*create()*方法，如下所示：
+这步操作将会执行一段SQL的插入语句。我们已经知道如何在内存中创建一个对象并且之后才在数据库中进行插入，但是我们也可以通过使用*create()*方法直接在数据库中创建对象，如下所示：
 
     Post.objects.create(title='One more post', slug='one-more-post',body='Post body.', author=user)
     
@@ -505,11 +505,11 @@ class PostAdmin(admin.ModelAdmin):
 > 你对对象的改变一直存在内存中直到你执行到*save()*方法。
 
 ##取回对象
-Django的*Object-relational mapping(ORM)*是基于查询集（QuerySet）。查询集（QuerySet）是从你的数据库中根据一些过滤条件范围取回的结果对象进行的采集。你已经知道如何通过*get()*方法从数据库中取回单独的对象。如你所见：我们通过`Post.objects.get()`来使用这个方法。每一个Django模型（model）至少有一个管理器（manager），默认管理器（manager）叫做*objects*。你能获得一个查询集（QuerySet）对象就是通过使用你的模型（models）的管理器（manager）。获取一张表中的所有对象，你只需要在默认的*objects*管理器（manager）上使用*all()*方法即可，如下所示：
+Django的*Object-relational mapping(ORM)*是基于查询集（QuerySet）。查询集（QuerySet）是从你的数据库中根据一些过滤条件范围取回的结果对象进行的采集。你已经知道如何通过*get()*方法从数据库中取回单独的对象。如你所见：我们通过`Post.objects.get()`来使用这个方法。每一个Django模型（model）至少有一个管理器（manager），默认管理器（manager）叫做*objects*。你通过使用你的模型（models）的管理器（manager）就能获得一个查询集（QuerySet）对象。获取一张表中的所有对象，你只需要在默认的*objects*管理器（manager）上使用*all()*方法即可，如下所示：
 
     >>> all_posts = Post.objects.all()
     
-这就是我们如何创建一个返回数据库中所有对象的查询集（QuerySet）。注意这个查询集（QuerySet）并还没有执行。Django的查询集（QuerySets）是惰性（lazy）的，它们只会被动的去执行。这样的行为可以保证查询集（QuerySet）非常效率。如果我们没有把查询集（QuerySet）设置给一个变量，而是直接在Python shell中编写，这样查询集（QuerySet）的SQL语句将立马执行因为我们迫使它输出结果：
+这就是我们如何创建一个用于返回数据库中所有对象的查询集（QuerySet）。注意这个查询集（QuerySet）并还没有执行。Django的查询集（QuerySets）是惰性（lazy）的，它们只会被动的去执行。这样的行为可以保证查询集（QuerySet）非常有效率。如果我们没有把查询集（QuerySet）设置给一个变量，而是直接在Python shell中编写，因为我们迫使它输出结果，这样查询集（QuerySet）的SQL语句将立马执行：
     
     >>> Post.objects.all()
     
@@ -526,7 +526,7 @@ Django的*Object-relational mapping(ORM)*是基于查询集（QuerySet）。查�
 
     Post.objects.filter(publish__year=2015).filter(author__username='admin')
     
-> 我们构建了字段的查找方法查询通过使用两个下划线`(publish__year)`，除此以外我们也可以访问关联的模型（model）字段通过使用两个下划线`(author__username)`。
+> 我们构建了字段的查找方法，通过使用两个下划线`(publish__year)`来查询，除此以外我们也可以通过使用两个下划线`(author__username)`访问关联的模型（model）字段。
 
 ##使用exclude()
 你可以在管理器（manager）上使用*exclude()*方法来排除某些返回结果。例如：我们可以返回所有2015年发布的帖子但是这些帖子的题目开头不能是*Why*:
@@ -534,7 +534,7 @@ Django的*Object-relational mapping(ORM)*是基于查询集（QuerySet）。查�
     Post.objects.filter(publish__year=2015).exclude(title__startswith='Why')
     
 ##使用order_by()
-你可以对结果进行排序通过在管理器（manager）上使用*order_by()*方法来对不同的字段进行排序。例如：你可以取回所有对象通过它们的标题进行排序：
+通过在管理器（manager）上使用*order_by()*方法来对不同的字段进行排序，你可以对结果进行排序。例如：你可以取回所有对象并通过它们的标题进行排序：
 
     Post.objects.order_by('title')
     
@@ -605,7 +605,7 @@ def post_list(request):
 
 你刚创建了你的第一个Django视图（view）。*post_list*视图（view）将*request*对象作为唯一的参数。记住所有的的视图（views）都有需要这个参数。在这个视图（view）中，我们获取到了所有状态为已发布的帖子通过使用我们之前创建的*published*管理器（manager）。
 
-最后，我们使用Django提供的快捷方法*render()*来渲染帖子列通过给予的模板（template）。这个函数将*request*对象作为参数，模板（template）路径以及变量来渲染的给予的模板（template）。它返回一个渲染文本（一般是HTML代码）*HttpResponse*对象。*render()*方法考虑到了请求内容，这样任何模板（template）内容处理器设置的变量都可以带入给予的模板（template）中。你会在*第三章，扩展你的blog应用*学习到如何使用它们。
+最后，我们使用Django提供的快捷方法*render()*通过给予的模板（template）来渲染帖子列。这个函数将*request*对象作为参数，模板（template）路径以及变量来渲染的给予的模板（template）。它返回一个渲染文本（一般是HTML代码）*HttpResponse*对象。*render()*方法考虑到了请求内容，这样任何模板（template）内容处理器设置的变量都可以带入给予的模板（template）中。你会在*第三章，扩展你的blog应用*学习到如何使用它们。
 
 让我们创建第二个视图（view）来展示一篇单独的帖子。添加如下代码到*views.py*文件中：
     
@@ -621,7 +621,7 @@ def post_detail(request, year, month, day, post):
                   {'post': post})
 ```
                     
-这是一个帖子详情视图（view）。这个视图（view）使用*year，month，day*以及*post*作为参数来获取到一篇已经发布的帖子通过给予slug和日期。请注意，当我们创建*Post*模型（model）的时候，我们给slgu字段添加了*unique_for_date*参数。这样我们可以确保在给予的日期中只有一个帖子会带有一个slug，因此，我们能取回单独的帖子通过日期和slug。在这个详情视图（view）中，我们通过使用*get_object_or_404()*快捷方法来检索期望的*Post*。这个函数能取回匹配给予的参数的对象，或者返回一个HTTP 404（Not found）异常当没有匹配的对象。最后，我们使用*render()*快捷方法来使用一个模板（template）去渲染取回的帖子。
+这是一个帖子详情视图（view）。这个视图（view）使用*year，month，day*以及*post*作为参数通过给予slug和日期来获取到一篇已经发布的帖子。请注意，当我们创建*Post*模型（model）的时候，我们给slgu字段添加了*unique_for_date*参数。这样我们可以确保在给予的日期中只有一个帖子会带有一个slug，因此，我们能通过日期和slug取回单独的帖子。在这个详情视图（view）中，我们通过使用*get_object_or_404()*快捷方法来检索期望的*Post*。这个函数能取回匹配给予的参数的对象，或者当没有匹配的对象时返回一个HTTP 404（Not found）异常。最后，我们使用*render()*快捷方法来使用一个模板（template）去渲染取回的帖子。
 
 ##为你的视图（views）添加URL模式
 
@@ -649,9 +649,9 @@ urlpatterns = [
 * day：需要两位数。不及两位数开头带上0
 * post：可以由单词和连字符组成
 
-> 为每一个应用创建单独的*urls.py*文件是最好的方法可以保证你的应用能给别的项目再度使用。
+> 为每一个应用创建单独的*urls.py*文件是最好的方法，可以保证你的应用能给别的项目再度使用。
 
-现在你需要将你blog中的URL模式包含到项目的主URL模式中。编辑你的项目中的*mysite*文件夹中*urls.py*文件，如下所示：
+现在你需要将你blog中的URL模式包含到项目的主URL模式中。编辑你的项目中的*mysite*文件夹中的*urls.py*文件，如下所示：
    
 ```python 
 from django.conf.urls import include, url
@@ -664,11 +664,12 @@ urlpatterns = [
         app_name='blog')),
 ]
 ```
-通过这样的方式，你告诉Django在*blog/*路径下包含了blog应用中的*urls.py*定义的URL模式。你可以给它们一个命名空间叫做*blog*这样你可以方便的引用这个URLs组。
+
+通过这样的方式，你告诉Django在*blog/*路径下包含了blog应用中的*urls.py*定义的URL模式。你可以给它们一个命名空间叫做*blog*，这样你可以方便的引用这个URLs组。
 
 ##模型（models）的标准URLs
 
-你可以使用之前定义的*post_detil* URL给*Post*对象构建标准URL。Django的惯例是添加*get_absolute_url()*方法给模型（model）用来返回一个对象的标准URL。在这个方法中，我们使用*reverse()*方法允许你通过它们的名字和可选的参数来构建URLS。编辑你的*models.py*文件添加如下代码：
+你可以使用之前定义的*post_detail* URL给*Post*对象构建标准URL。Django的惯例是给模型（model）添加*get_absolute_url()*方法用来返回一个对象的标准URL。在这个方法中，我们使用*reverse()*方法允许你通过它们的名字和可选的参数来构建URLS。编辑你的*models.py*文件添加如下代码：
 
 ```python
 from django.core.urlresolvers import reverse
@@ -701,9 +702,9 @@ templates/
             
 以上就是我们的模板（templates）的文件目录结构。*base.html*文件将会包含站点主要的HTML结构以及分割内容区域和一个导航栏。*list.html*和*detail.html*文件会继承*base.html*文件来渲染各自的blog帖子列和详情视图（view）。
 
-Django有一个强大的模板（templates）语言允许你指定数据的如何进行展示。它基于模板标签（templates tags）， 例如 `{% tag %}`, `{{ variable }}`以及模板过滤器（templates filters），可以对变量进行过滤，例如 `{{ variable|gilter }}`。你可以找到所有的内置模板标签（templates tags）和过滤器（filters）通过访问 https://docs.djangoproject.com/en/1.8/ ref/templates/builtins/ 。
+Django有一个强大的模板（templates）语言允许你指定数据的如何进行展示。它基于模板标签（templates tags）， 例如 `{% tag %}`, `{{ variable }}`以及模板过滤器（templates filters），可以对变量进行过滤，例如 `{{ variable|filter }}`。你可以通过访问 https://docs.djangoproject.com/en/1.8/ ref/templates/builtins/ 找到所有的内置模板标签（templates tags）和过滤器（filters）。
 
-让我们来编辑*base.html*文件添加如下代码：
+让我们来编辑*base.html*文件并添加如下代码：
 
 ```html
 {% load staticfiles %}
@@ -728,7 +729,7 @@ Django有一个强大的模板（templates）语言允许你指定数据的如�
 
 `{% load staticfiles %}`告诉Django去加载*django.contrib.staticfiles*应用提供的*staticfiles* 模板标签（temaplate tags）。通过加载它，你可以在这个模板（template）中使用`{% static %}`模板过滤器（template filter）。通过使用这个模板过滤器（template filter），你可以包含一些静态文件比如说*blog.css*文件，你可以在本书的范例代码例子中找到该文件，在blog应用的*static/*目录中**（译者注：给大家个地址去拷贝 https://github.com/levelksk/django-by-example-book ）**拷贝这个目录到你的项目下的相同路径来使用这些静态文件。
 
-你可以看到有两个`{% block %}`标签（tags）。这些是用来告诉Django我们想在这个区域中定义一个区块（block）。继承这个模板（template）的模板们（templates）可以使用自定义的内容来填充区块（block）。我们定义了一个区块（block）叫做*title*，另一个区块（block）叫做*content*。
+你可以看到有两个`{% block %}`标签（tags）。这些是用来告诉Django我们想在这个区域中定义一个区块（block）。继承这个模板（template）的其他模板（templates）可以使用自定义的内容来填充区块（block）。我们定义了一个区块（block）叫做*title*，另一个区块（block）叫做*content*。
 
 让我们编辑*post/list.html*文件使它如下所示：
 
@@ -774,7 +775,7 @@ Django有一个强大的模板（templates）语言允许你指定数据的如�
 {% endblock %}
 ```
     
-现在，你可以返回你的浏览器中点击其中一篇帖子的标题来看帖子的详细视图（view）。你会看到类似以下页面：
+现在，你可以在浏览器中点击其中一篇帖子的标题来看帖子的详细视图（view）。你会看到类似以下页面：
 ![django-1-10](http://upload-images.jianshu.io/upload_images/3966530-6c9f869e3aaad43d.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ##添加页码
@@ -806,7 +807,7 @@ def post_list(request):
 
 *Paginator*是如何工作的：
 
-* 我们使用希望在每页中显示的对象的数量实例化了*Paginator*类。
+* 我们使用希望在每页中显示的对象的数量来实例化*Paginator*类。
 * 我们获取到*page* GET参数来指明页数   
 * 我们通过调用*Paginator*的 *page()*方法在期望的页面中获得了对象。
 * 如果*page*参数不是一个整数，我们就返回第一页的结果。如果这个参数数字超出了最大的页数，我们就展示最后一页的结果。
@@ -830,7 +831,7 @@ def post_list(request):
 </div>    
 ```
     
-这个分页模板（template）期望一个*Page*对象为了渲染上一页与下一页的链接并且展示当前页面和所有页面的结果。让我们回到*blog/post/list.html*模板（tempalte）中将*pagination.html*模板（template）包含在`{% content %}`区块（block）中，如下所示：
+为了渲染上一页与下一页的链接并且展示当前页面和所有页面的结果，这个分页模板（template）期望一个*Page*对象。让我们回到*blog/post/list.html*模板（tempalte）中将*pagination.html*模板（template）包含在`{% content %}`区块（block）中，如下所示：
 
 ```html
 {% block content %}
@@ -848,7 +849,7 @@ def post_list(request):
 
 因为一个视图（view）的调用就是得到一个web请求并且返回一个web响应，你可以将你的视图（views）定义成类方法。Django为此定义了基础的视图（view）类。它们都从*View*类继承而来，*View*类可以操控HTTP方法调度以及其他的功能。这是一个可替代的方法来创建你的视图（views）。
 
-我们准备使我们的*post_list*视图（view）转变为一个基于类的视图通过使用Django提供的通用*ListView*。这个基础视图（view）允许你对任意的对象进行排列。
+我们准备通过使用Django提供的通用*ListView*使我们的*post_list*视图（view）转变为一个基于类的视图。这个基础视图（view）允许你对任意的对象进行排列。
 
 编辑你的blog应用下的*views.py*文件，如下所示：
 
@@ -886,7 +887,7 @@ urlpatterns = [
     
     {% include "pagination.html" with page=page_obj %}
     
-在你的浏览器中打开 http://127.0.0.1:8000/blog/ 然后检查每一样功能是否都和之前的*post_list*视图（view）一样工作。这是一个简单的基于类的视图（view）例子通过使用Django提供的通用类。你将会学到更多的基于类的视图（views）在*第十章，创建一个在线学习平台*以及相关的章节中。
+在你的浏览器中打开 http://127.0.0.1:8000/blog/ 然后检查每一样功能是否都和之前的*post_list*视图（view）一样工作。这是一个简单的，通过使用Django提供的通用类的基于类视图（view）的例子。你将在*第十章，创建一个在线学习平台*以及相关的章节中学到更多的基于类的视图（views）。
 
 #总结
 
