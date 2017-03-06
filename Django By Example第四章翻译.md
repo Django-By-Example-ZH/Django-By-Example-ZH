@@ -97,29 +97,30 @@ Django拥有一个内置的认证（authentication）框架用来操作用户认
 
 这个表单（form）被用来通过数据库认证用户。请注意，我们使用*PsswordInput*控件来渲染HTML`input`元素，包含`type="password`属性。编辑你的*account*应用中的*views.py*文件，添加如下代码：
 
-    from django.http import HttpResponse    
-    from django.shortcuts import render    
-    from django.contrib.auth import authenticate, login    
-    from .forms import LoginForm    
-    def user_login(request):        
-        if request.method == 'POST':            
-            form = LoginForm(request.POST)            
-            if form.is_valid():                
-                cd = form.cleaned_data                
-                user = authenticate(username=cd['username'],
-                                    password=cd['password'])                
-                if user is not None:                    
-                    if user.is_active:                        
-                        login(request, user)                        
-                        return HttpResponse('Authenticated successfully')
-                    else:                        
-                        return HttpResponse('Disabled account')
+```python
+from django.http import HttpResponse    
+from django.shortcuts import render    
+from django.contrib.auth import authenticate, login    
+from .forms import LoginForm    
+def user_login(request):        
+    if request.method == 'POST':            
+        form = LoginForm(request.POST)            
+        if form.is_valid():                
+            cd = form.cleaned_data                
+            user = authenticate(username=cd['username'],
+                                password=cd['password'])                
+            if user is not None:                    
+                if user.is_active:                        
+                    login(request, user)                        
+                    return HttpResponse('Authenticated successfully')
+                else:                        
+                    return HttpResponse('Disabled account')
             else:            
                 return HttpResponse('Invalid login')        
-        else:            
-            form = LoginForm()        
-        return render(request, 'account/login.html', {'form': form})
-
+    else:            
+        form = LoginForm()        
+    return render(request, 'account/login.html', {'form': form})
+```
 
 以上就是我们在视图（view）中所作的基本登录操作：当*user_login*被一个GET请求（request）调用，我们实例化一个新的登录表单（form）通过`form = LoginForm()`在模板（template）中展示它。当用户通过POST方法提交表单（form），我们执行以下操作：
 
@@ -151,7 +152,12 @@ Django拥有一个内置的认证（authentication）框架用来操作用户认
 
 这个登录视图（view）现在已经可以通过URL进行访问。现在是时候为这个视图（view）创建一个模板。因为之前你没有这个项目的任何模板，你可以开始创建一个主模板（template）可以被登录模板（template）继承使用。创建以下文件和结构在*account*应用目录中：
 
-    templates/account/login.htmlbase.html
+```shell
+    templates/
+        account/
+            login.html
+        base.html
+```
 
 编辑*base.html*文件添加如下代码：
 

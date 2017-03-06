@@ -88,7 +88,7 @@ Django将会使用这个函数名作为标签（tag）名。如果你想使用�
 
 在以上代码中，我们通过装饰器*@register.inclusion_tag*注册模板标签（template tag），然后我们指定模板（template）必须被*blog/post/latest_posts.html*返回的值渲染。我们的模板标签（template tag)将会接受一个可选的*count*参数（默认是5）允许我们指定我们想要显示的帖子数量。我们使用这个变量来限制`Post.published.order_by('-publish')[:count]`查询返回的结果。请注意，这个函数返回了一个变量字典替代了一个简单的值。包含标签（Inclusion tags）必须返回一个包含值的字典用作上下文（context）来渲染指定的模板（template）。包含标签（inclusion tags）返回一个字典。这个我们刚创建的模板标签（template tag）可以接受的想要显示的帖子数（可选），类似*{% show_latest_posts 3 %}。
 
-现在，在*blog/post/*下创建一个新的模板（template）文件并且命名为*lastst_posts.html*。在该文件中添加如下代码：
+现在，在*blog/post/*下创建一个新的模板（template）文件并且命名为*latest_posts.html*。在该文件中添加如下代码：
 
     <ul>
     {% for post in latest_posts %}
@@ -345,7 +345,7 @@ Solr允许你隔离每一个core实例。每个Solr **core**是一个**全文搜
     blog/ 
         data/        conf/            protwords.txt            schema.xml            solrconfig.xml            stopwords.txt            synonyms.txt            lang/                stopwords_en.txt
                 
-在*solrconfig.mxl*文件中添加如下XML代码：
+在*solrconfig.xml*文件中添加如下XML代码：
 
     <?xml version="1.0" encoding="utf-8" ?>    <config>     <luceneMatchVersion>LUCENE_36</luceneMatchVersion>     <requestHandler name="/select" class="solr.StandardRequestHandler" default="true" />     <requestHandler name="/update" class="solr.UpdateRequestHandler" />     <requestHandler name="/admin" class="solr.admin.AdminHandlers" />     <requestHandler name="/admin/ping" class="solr.PingRequestHandler">       <lst name="invariants">         <str name="qt">search</str>         <str name="q">*:*</str>       </lst>     </requestHandler>    </config>
 
