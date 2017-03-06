@@ -75,7 +75,7 @@ def post_share(request, post_id):
             cd = form.cleaned_data
             # ... send email
     else:
-        form = emailPostform()
+        form = EmailPostform()
     return render(request, 'blog/post/share.html', {'post': post,
 										                       'form: form})
 ```
@@ -117,7 +117,7 @@ def post_share(request, post_id):
 * EMAIL_USE_TLS: 是否使用TLS加密协议。
 * EMAIL_USE_SSL: 是否使用SSL加密协议。
 
-如果你没有本地SMTP服务，你可以使用你的email提供的SMTP服务。下面提供了一个简单的例子展示如何通过使用Google账户的Gmail服务来发送email：
+如果你没有本地SMTP服务，你可以使用你的email服务供应商提供的SMTP服务。下面提供了一个简单的例子展示如何通过使用Google账户的Gmail服务来发送email：
 
 ```python
 EMAIL_HOST = 'smtp.gmail.com'
@@ -134,38 +134,38 @@ EMAIL_USE_TLS = True
 >>> send_mail('Django mail', 'This e-mail was sent with Django.','your_account@gmail.com', ['your_account@gmail.com'], fail_silently=False)
 ```
     
-*send_mail()*方法需要主题，内容，发送者以及一个收件人的列表作为必须参数。通过设置可选参数`fail_silently=False`，我们告诉这个方法抛出一个异常如果email没有发送成功。如果你看到输出是*1*，证明你的email成功发送了。如果你使用Gmail来发送邮件通过使用上面的配置，你可能需要去设置一下低安全级别的应用权限在 https://www.google.com/settings/security/lesssecureapps 。**(译者注：练习时老老实实用QQ邮箱吧）**
+*send_mail()*方法需要这些参数：邮件主题，内容，发送人以及一个收件人的列表。通过设置可选参数`fail_silently=False`，我们告诉这个方法如果email没有发送成功那么需要抛出一个异常。如果你看到输出是*1*，证明你的email发送成功了。如果你通过Gmail来发送邮件使用之前的配置，你可能需要去 https://www.google.com/settings/security/lesssecureapps 设置一下低安全级别的应用权限。(译者注：练习时老老实实用QQ邮箱吧）
 
 现在，我们要将以上代码添加到我们的视图（view）中。在blog应用下的*views.py*文件中编辑*post_share*视图（view）如下所示：
 
 ```python
 from django.core.mail import send_mail
 
-    def post_share(request, post_id):
-        # Retrieve post by id
-        post = get_object_or_404(Post, id=post_id, status='published')
-        sent = False
+def post_share(request, post_id):
+    # Retrieve post by id
+    post = get_object_or_404(Post, id=post_id, status='published')
+    sent = False
+    if request.method == 'POST':
+        # Form was submitted
+        form = EmailPostForm(request.POST)
+        if form.is_valid():
+            # Form fields passed validation
+            cd = form.cleaned_data
+            post_url = request.build_absolute_uri(
+                                    post.get_absolute_url())
+            subject = '{} ({}) recommends you reading "{}"'.format(cd['name'], cd['email'], post.title)
+            message = 'Read "{}" at {}\n\n{}\'s comments: {}'.format(post.title, post_url, cd['name'], cd['comments'])
+            send_mail(subject, message, 'admin@myblog.com',[cd['to']])
+            sent = True
+    else:
+        form = EmailPostForm()
         
-        if request.method == 'POST':
-            # Form was submitted
-            form = EmailPostForm(request.POST)
-            if form.is_valid():
-                # Form fields passed validation
-                cd = form.cleaned_data
-                post_url = request.build_absolute_uri(
-                                        post.get_absolute_url())
-                subject = '{} ({}) recommends you reading "{}"'.format(cd['name'], cd['email'], post.title)
-                message = 'Read "{}" at {}\n\n{}\'s comments: {}'.format(post.title, post_url, cd['name'], cd['comments'])
-                send_mail(subject, message, 'admin@myblog.com',[cd['to']])
-                sent = True
-        else:
-            form = EmailPostForm()
     return render(request, 'blog/post/share.html', {'post': post,
                                                     'form': form,
                                                     'sent': sent})
 ```
 
-请注意，我们声明了一个*sent*变量并且设置它为*True*当帖子被成功发送。当表单成功提交的时候，我们会使用这个变量用来在模板（template）中显示一条成功提示。因为我们需要包含一个超链接给帖子在email中，我们获取该帖子的绝对路径通过使用`post.get_absolute_url()`方法。我们将这个绝对路径作为`request.build_absolute_uri()`的输入值来构建一个完整的URL，该URL包含HTTP模式和主机名。我们构建email的主题和消息体通过使用验证过的表单数据，然后最终发送email给表单中的*to*字段中包含的所有email地址。
+请注意，我们声明了一个*sent*变量并且当帖子被成功发送时赋予它*True*。当表单成功提交的时候，我们会使用这个变量在模板（template）中显示一条成功提示。因为我们需要在email中包含帖子的超链接，所以我们通过使用`post.get_absolute_url()`方法来获取到帖子的绝对路径。我们将这个绝对路径作为`request.build_absolute_uri()`的输入值来构建一个完整的HTTP链接。我们通过使用验证过的表单数据来构建email的主题和消息内容并最终发送email给表单中的*to*字段中包含的所有email地址。
 
 现在你的视图（view）已经完成了，别忘记为它去添加一个新的URL模式。打开你的blog应用下的*urls.py*文件添加*post_share*的URL模式如下所示：
 
@@ -205,9 +205,9 @@ url(r'^(?P<post_id>\d+)/share/$', views.post_share,
 
 这个模板（tempalte）专门用来显示一个表单或当email成功发送后展示一条成功提示信息。如你所见，我们创建的HTML表单元素里面表明了它必须通过POST方法提交：
 
-    <form action="." method="post">    
-    
-接下来我们要包含真实的表单实例。我们告诉Django使用HTML的`<p>`元素来渲染它的字段通过使用`as_p`方法。我们也可以使用无序列表来渲染表单通过使用`as_ul`或者展示成一个HTML表格通过使用`as_table`。如果我们想要渲染每一个字段，我们可以通过迭代字段例如下方的例子：
+    <form action="." method="post">
+
+接下来我们要包含真实的表单实例。我们告诉Django使用HTML的`<p>`元素通过使用`as_p`方法来渲染它的字段。我们也可以通过使用`as_ul`采用无序列表来渲染表单或者使用`as_table`展示成一个HTML表格。如果我们想要渲染每一个字段，我们可以通过迭代字段例如下方的例子：
 
 ```html
 {% for field in form %}
@@ -228,7 +228,8 @@ url(r'^(?P<post_id>\d+)/share/$', views.post_share,
     
 > 默认情况下，Django在所有的POST请求中都会检查CSRF标记（token）。请记住要在所有使用POST方法提交的表单中包含*csrf_token*标签。**（译者注：当然你也可以关闭这个检查，注释掉app_list中的csrf应用即可，我就是这么做的，因为我懒）**
 
-编辑你的*blog/post/detail.html*模板（template）添加一个如下的链接来分享帖子的URL在`{{ post.body|linebreaks }}`变量后面：
+
+编辑你的*blog/post/detail.html*模板（template），在`{{ post.body|linebreaks }}`变量后面添加如下的链接来分享帖子的URL：
 
 ```html
 <p>
@@ -256,7 +257,7 @@ url(r'^(?P<post_id>\d+)/share/$', views.post_share,
 
 现在我们要为blog创建一个评论系统，这样用户可以在帖子上进行评论。创建一个评论系统，你需要做到以下几点：
 
-* 创建一个模型（modle）用来保存评论
+* 创建一个模型（model）用来保存评论
 * 创建一个表单用来提交评论并且验证输入的数据
 * 添加一个视图（view）来处理表单和保存新的评论到数据库中
 * 编辑帖子详情模板（template）来展示评论列以及用来添加新评论的表单
@@ -280,9 +281,9 @@ class Comment(models.Model):
         return 'Comment by {} on {}'.format(self.name, self.post)
 ```
 
-以上就是我们的*Comment*模型（model）。它包含了一个*ForeignKey*用来关联评论和一篇单独的帖子。这个多对一（many-to-one）关系被定义在*Comment*模型中是因为每一条评论只能在一篇帖子上，而每一篇帖子又可能包含多个评论。*related_name*属性允许我们命名这个属性这样我们就可以使用这个关系从有关联的对象返回到这条评论。定义好这个之后，我们可以从一条评论来取到对应的帖子通过使用 `comment.post`和取回篇个帖子所有的评论通过使用`post.comments.all()`。如果你没有定义*related_name*属性，Django会使用这个模型（model）的命名加上*_set*（例如：*comment_set*）来命名这个有关联对象的管理器返回到这条评论。
+以上就是我们的*Comment*模型（model）。它包含了一个外键用来关联一个单独的帖子。在*Comment*模型（model）中定义多对单（many-to-one）的关系是因为每一条评论只能在一个帖子下生成，而每一个帖子又可能包含多个评论。*related_name*属性允许我们命名这个属性这样我们就可以使用这个关系从有关联的对象来读取这儿。定义好这个之后，我们可以通过使用 `comment.post`从一条评论来取到对应的帖子或者通过使用`post.comments.all()`取回一个帖子所有的评论。如果你没有定义*related_name*属性，Django会使用这个模型（model）的命名加上*_set*（例如：comment_set）来命名关联对象读取这儿的管理器（manager）。
 
-你可以学习更多关于多对一（many-to-one）的关系通过访问 https://docs.djangoproject.com/en/1.8/topics/db/examples/many_to_one/
+访问https://docs.djangoproject.com/en/1.8/topics/db/examples/many_to_one/, 你可以学习更多关于多对单的关系。
 
 我们包含了一个*active*布尔字段，该字段可以被我们用来手动停用无效的评论。我们使用*created*字段来排序评论，默认根据创建时间来进行排序。
 
@@ -308,7 +309,8 @@ Django会在blog应用下的*migrations/*目录中生成了一个*0002_comment.p
     
 我们刚刚创建的数据迁移已经被执行，并且一张*blog_comment*表已经存在数据库中。
 
-现在，我们可以添加我们新的模型（model）到管理站点中为了能通过简单的接口来管理评论。打开blog应用下的*admin.py*文件，添加如下内容：
+
+现在，我们可以添加我们新的模型（model）到管理站点中并通过简单的接口来管理评论。打开blog应用下的*admin.py*文件，添加如下内容：
 
 ```python
 from .models import Post, Comment
@@ -338,11 +340,11 @@ class CommentForm(forms.ModelForm):
         fields = ('name', 'email', 'body')
 ```
     
-根据模型（model）创建表单，我们只需要在这个表单的*Meta*类里表明哪个模型（model）被用来构建表单。Django会对这个模型（model）内审，并为我们动态的构建表单。每一种模型（model）字段类型都有对应的默认表单字段类型。默认的，Django构建一个表单字段给模型（model）中包含的每个字段。当然，你可以明确的告诉框架你想在你的表单中包含哪些字段通过使用*fields*列，或者定义哪些字段你要排除通过使用*exclude*列。对于我们的*CommentForm*,我们在表单中只需要*name*,*email*,和*body*字段，因为我们只需要用到这3个字段让我们的用户来填写。
+根据模型（model）创建表单，我们只需要在这个表单的*Meta*类里表明哪个模型（model）被用来构建表单。Django会对这个模型（model）内审，并为我们动态的构建表单。每一种模型（model）字段类型都有对应的默认表单字段类型。默认的，Django构建一个表单字段给模型（model）中包含的每个字段。当然，你可以通过使用*fields*列明确的告诉框架你想在表单中包含哪些字段，或者通过使用*exclude*列定义哪些字段你不需要的。对于我们的*CommentForm*,我们在表单中只需要*name*,*email*,和*body*字段，因为我们只需要用到这3个字段让我们的用户来填写。
 
 ##在视图（views）中操作*ModelForms*
 
-我们会使用帖子详情视图（view）来实例化表单，并且处理它为了保持它的简单。编辑*views.py*文件**（译者注：原文是models.py，但是根据读者反馈和上下文来看，这里应该是views.py）**，导入*Comment*模型（model）和*CommentForm*表单，并且修改*post_detail*视图（view）如下所示：
+我们会使用帖子详情视图（view）来实例化表单，并且处理它为了保持它的简单。编辑*views.py*文件**(注: 原文此处有错，应为 `views.py`)**，导入*Comment*模型（model）和*CommentForm*表单，并且修改*post_detail*视图（view）如下所示：
 
 ```python
 from .models import Post, Comment
@@ -376,18 +378,19 @@ def post_detail(request, year, month, day, post):
                   'comment_form': comment_form})
 ```
 
-让我们来回顾下我们刚才对我们的视图（view）添加了哪些操作。我们使用*post_detail*视图（view）来显示帖子和该帖子的评论。我们添加了一个查询集（QuerySet）来获取这个帖子所有有效的评论：
+让我们来回顾一下我们刚才对视图（view）添加了哪些操作。我们使用*post_detail*视图（view）来显示帖子和该帖子的评论。我们添加了一个查询集（QuerySet）来获取这个帖子所有有效的评论：
     
     comments = post.comments.filter(active=True)
     
-我们构建的这个查询集（QuerySet）从*post*对象开始。We are using the manager for related objects we defined as *comments* using the *related_name* attribute of the relationship in the *Comment* model. **（译者注：这句比较蛋碎，有谁能帮忙翻译下）**
+我们从*post*对象开始构建这个查询集（QuerySet）。通过使用在*Comment* 模型（model）中定义的*related_name属性关系来返回所有有关系的评论对象赋给*comments*。
 
-我们还使用该视图（view）来让我们的用户添加一条新的评论。因此我们构建一个表单实例通过`comment_form = CommentForm()`如果这个视图（view）调用通过一个GET请求。如果请求是POST，我们实例化这个表单使用提交的数据并且验证数据通过使用*is_valid()*方法。如果这个表单是无效的，我们渲染模板（template）通过验证错误的信息。如果表单通过验证，我们会做以下的操作：
+我们还在这个视图（view）中让我们的用户添加一条新的评论。如果调用这个视图（view）通过GET请求，我们就通过使用`comment_fomr = commentForm()`创建了一个表单实例。如果请求是一个POST，我们使用提交的数据来实例化表单并且通过使用*is_valid()*方法来验证数据。如果这个表单是无效的，我们会在模板（template）中渲染验证错误的信息。如果表单通过验证，我们会做以下的操作：
 
-* 1.我们创建一个新的*Comment*对象通过调用这个表单的*save()*方法，如下所示：
+* 1.我们通过调用这个表单的*save()*方法创建一个新的*Comment*对象，如下所示：
+
 `new_comment = comment_form.save(commit=False)` 
 
-*saven()*方法创建了一个模型（model）的实例，这样这个表单被联系起来并且保存表单的数据到数据库中。如果你调用这个方法通过`comment=False`，你创建的模型（model）实例不会即时保存到数据库中。这是非常方便的当你想在最终保存之前修改这个模型（model）对象，我们接下来将做这一步骤。*save()*方法是给*ModelForm*用的，而不是给*Form*实例用的，因为*Form*实例没有联系上任何模型（model）。
+*saven()*方法创建了一个模型（model）的实例，这样这个表单被联系起来并且保存表单的数据到数据库中。如果你调用这个方法时设置`comment=False`，你创建的模型（model）实例不会即时保存到数据库中。当你想在最终保存之前修改这个model对象会非常方便，我们接下来将做这一步骤。*save()*方法是给*ModelForm*用的，而不是给*Form*实例用的，因为*Form*实例没有联系上任何模型（model）。
 
 * 2.我们分配当前的帖子给我们刚才创建的评论：
     
@@ -421,11 +424,11 @@ def post_detail(request, year, month, day, post):
 
 我们使用Django ORM在模板（template）中执行这个查询集（QuerySet）`comments.count()`。注意，Django模板（template）语言中不使用圆括号来调用方法。`{% with %}` 标签（tag）允许我们分配一个值给新的变量，这个变量可以一直存在直到遇到`{% endwith %}`标签（tag）。
 
-> `{% with %}`模板（template）标签（tag）是非常有用的可以避免直接使用数据库或花费大量的时间在处理复杂的方法。
+> `{% with %}`模板（template）标签（tag）是非常有用的，可以避开直接使用数据库或花费大量的时间在处理复杂的方法上。
 
-我们使用*pluralize*模板（template）过滤器（filter）在单词*comment*的后面展示*total_comments*的复数形式。模板（Template）过滤器（filters）将它们应用的变量值作为输入然后返回计算后的值。我们将会更多的讨论模板（tempalte）过滤器（filters）在*第三章 扩展你的blog应用*中。
+我们使用*pluralize*模板（template）过滤器（filter）在单词*comment*的后面展示*total_comments*的复数形式。模板（Template）过滤器（filters）将它们应用的变量值作为输入然后返回计算后的值。我们将会在*第三章 扩展你的博客应用*中讨论更多的模板过滤器（tempalte filters）。
 
-*pluralize*模板（template）过滤器（filter）会显示一个"s"如果值不为1。在之前的文本将会渲染成类似：*0 comments*, *1 comment* 或者 *N comments*。Django内置大量的模板（template）标签（tags）和过滤器（filters）来帮助你通过各种方法展示各类信息。
+*pluralize*模板（template）过滤器（filter）如果值不为 1，会在值的末尾显示一个"s"。在之前的文本将会渲染成类似：*0 comments*, *1 comment* 或者 *N comments*。Django内置大量的模板（template）标签（tags）和过滤器（filters）来帮助你通过各种方法展示各类信息。
 
 现在，让我们包含评论列。添加以下行到模板（template）中在之前的代码后面：
     
@@ -443,9 +446,9 @@ def post_detail(request, year, month, day, post):
 {% endfor %}
 ```
     
-我们使用`{% for %}`模板（template）标签（tag）来循环所有的评论。我们会显示一个默认的信息如果*comments*列为空，告诉我们的用户这篇帖子还没有任何评论。我们通过使用 `{{ forloop.counter }}`变量来枚举评论，该变量包含了每次迭代的循环数。之后我们显示发送评论的用户名，日期，和评论的内容。
+我们使用`{% for %}`模板（template）标签（tag）来循环所有的评论。如果*comments*列为空我们会显示一个默认的信息，告诉我们的用户这篇帖子还没有任何评论。我们通过使用 `{{ forloop.counter }}`变量来枚举评论，该变量包含了每次迭代的循环数。之后我们显示发送评论的用户名，日期，和评论的内容。
 
-最后，你需要渲染这个表单或者显示一条成功的信息来代替表单当表单提交成功后。在之前的代码后面添加如下内容：
+最后，当表单提交成功后,你需要渲染表单或者显示一条成功的信息。在之前的代码后面添加如下内容：
 
 ```html
 {% if new_comment %}
@@ -461,6 +464,7 @@ def post_detail(request, year, month, day, post):
 ```
     
 这段代码非常简洁明了：如果*new_comment*对象存在，我们会展示一条成功信息因为成功创建了一条新评论。否则，我们通过一个段落`<p>`元素渲染表单中的每一个字段，并且包含必须CSRF标记给POST请求。在浏览器中打开 http://127.0.0.1:8000/blog/ 然后点击任意一篇帖子的标题查看它的详情页面。你会看到如下页面展示：
+
 ![django-2-6](http://ohqrvqrlb.bkt.clouddn.com/django-2-6.png)
 
 使用该表单添加数条评论。这些评论会在你的帖子下面根据时间排序来展示，类似下图：
@@ -471,7 +475,7 @@ def post_detail(request, year, month, day, post):
 
 ##增加标签（tagging）功能
 
-在实现了我们的评论系统之后，我们要创建一个方法来给我们的帖子添加标签。我们会在我们的项目中集成第三方的Django标签应用来使用。*django-taggit*是一个可重用的应用，它会提供给你一个*Tag*模型（model）和一个管理器（manager）来方便的给任何模型（model）添加标签。你可以阅读到它的源码，通过访问 https://github.com/alex/django-taggit 。
+在实现了我们的评论系统之后，我们要创建一个方法来给我们的帖子添加标签。我们会在我们的项目中集成第三方的Django标签应用来使用。*django-taggit*是一个可重用的应用，它会提供给你一个*Tag*模型（model）和一个管理器（manager）来方便的给任何模型（model）添加标签。访问 https://github.com/alex/django-taggit 你可以阅读到源码。
 
 首先，你需要通过pip安装django-taggit，运行以下命令：
     
@@ -513,7 +517,7 @@ Migrations for 'blog':
 现在，运行以下命令来创建必需的数据库表给*django-taggit*模型（model）并且同步你的模型（model）改变：
 
     python manage.py migrate
-    
+
 你会看到以下输出：
 
 ```shell
@@ -546,6 +550,7 @@ Applying blog.0003_post_tags... OK
 ```
     
 非常简单，对吧？运行命令`python manage.py runserver`启动开发服务器，在浏览器中打开 http://127.0.0.1:8000/admin/taggit/tag/ 。你会看到管理页面包含了*taggit*应用的*Tag*对象列：
+
 ![django-2-9](http://ohqrvqrlb.bkt.clouddn.com/django-2-9.png)
 
 转到 http://127.0.0.1:8000/admin/blog/post/ 并点击一篇帖子进行编辑。你会看到帖子中包含了一个新的**Tags**字段如下所示，你可以非常容易的编辑它：
@@ -621,12 +626,12 @@ url(r'^tag/(?P<tag_slug>[-\w]+)/$',views.post_list,
     name='post_list_by_tag'),
 ```
     
-如你所见，两个模式都指向了相同的视图（view），但是我们可以给它们不同的命名。第一个模式会调用*post_list*视图（view）不带上任何可选参数。第二个模式会调用这个视图（view）带上*tag_slug*参数。
+如你所见，两个模式都指向了相同的视图（view），但是我们可以给它们不同的命名。第一个模式会调用*post_list*视图（view）并且不带上任何可选参数。第二个模式会调用这个视图（view）带上*tag_slug*参数。
 
 因为我们要使用*post_list*视图（view）,编辑*blog/post/list.html* 模板（template）修改pagination使用*posts*对象，如下所示：
 
     {% include "pagination.html" with page=posts %}
-    
+
 在`{% for %}`循环上方添加如下代码：
 
 ```html
@@ -650,9 +655,10 @@ url(r'^tag/(?P<tag_slug>[-\w]+)/$',views.post_list,
 ```
     
 现在，我们循环一篇帖子的所有标签显示一个自定义的链接给URL来过滤帖子通过循环到的标签。我们构建URL通过使用` {% url "blog:post_list_by_tag"
-tag.slug %}`，使用URL的命名以及标签slug作为参数。我们使用逗号分开这些标签。
+tag.slug %}`，使用URL的命名以及标签slug作为参数。我们使用逗号分隔这些标签。
 
 在浏览器中打开 http://127.0.0.1:8000/blog/ 然后点击任意的标签链接，你会看到通过该标签过滤过的帖子列，如下所示：
+
 ![django-2-12](http://ohqrvqrlb.bkt.clouddn.com/django-2-12.png)
 
 ##获取类似的帖子
@@ -671,7 +677,7 @@ tag.slug %}`，使用URL的命名以及标签slug作为参数。我们使用逗�
 这些步骤可以转换成一个复杂的查询集（QuerySet），该查询集（QuerySet）我们需要包含在我们的*post_detail*视图（view）中。打开blog应用中的*view.py*文件，在顶部添加如下导入：
 
     from django.db.models import Count
-    
+
 这是Django ORM的*Count*聚合函数。这个函数允许我们处理聚合计算。然后在*post_detail*视图（view）的*render()*功能之前添加如下代码：
 
 ```python
@@ -683,6 +689,7 @@ similar_posts = similar_posts.annotate(same_tags=Count('tags'))\
                             .order_by('-same_tags','-publish')[:4]
 ```
     
+
 以上代码的解释如下：
 
 * 1.我们取回了一个包含当前帖子的所有标签的ID的Python列。*values_list()* 查询集（QuerySet）返回元祖包含给予的字段值。我们通过使用`flat=True`处理它获取一个简单的列表类似`[1,2,3,...]`。
@@ -698,7 +705,7 @@ similar_posts = similar_posts.annotate(same_tags=Count('tags'))\
                     'comments': comments,
                     'comment_form': comment_form,
                     'similar_posts': similar_posts})
-                    
+
 
 现在，编辑*blog/post/detail.html*模板（template）在帖子评论列前添加如下代码：
 
@@ -713,15 +720,16 @@ similar_posts = similar_posts.annotate(same_tags=Count('tags'))\
   {% endfor %}
 ```
     
-你也可以在你的帖子详情模板（template）中添加标签的列来推荐类似的帖子通过我们在帖子列模板（tempalte）中使用的同样方法。现在，你的帖子详情页面看上去如下所示：
+通过我们在帖子列表模板（tempalte）中使用的同样方法，你也可以在你的帖子详情模板（template）中添加标签的列来推荐类似的帖子。现在，你的帖子详情页面看上去如下所示：
 ![django-2-13](http://ohqrvqrlb.bkt.clouddn.com/django-2-13.png)
 
-你已经成功的为你的用户推荐了类似的帖子。*django-taggit*还内置了一个`similar_objects()` 管理器（manager）使你可以用来通过共享的标签返回所有对象。你可以看到所有的*django-taggit*管理器（managers）通过访问 http://django-taggit.readthedocs.org/en/latest/api.html 。
+你已经成功的为你的用户推荐了类似的帖子。*django-taggit*还内置了一个`similar_objects()` 管理器（manager）使你可以用来通过共享的标签返回所有对象。你可以通过访问 http://django-taggit.readthedocs.org/en/latest/api.html 看到所有django-taggit管理器。
 
 ##总结
-在本章中，你学习了如何使用Django的表单和模型（model）表单。你创建了一个系统通过email用来分享你的站点内容，还创建了一个评论系统给你的blog。你为你的帖子增加了标签的功能，集成了一个可复用的应用，同时，你还构建了一个复杂的查询集（QuerySets)用来返回类似的对象。
+在本章中，你学习了如何使用Django的表单和模型（model）表单。你创建了一个通过email用来分享你的站点内容的系统，还创建了一个评论系统给你的blog。你为你的帖子增加了标签的功能，集成了一个可复用的应用，同时，你还构建了一个复杂的查询集（QuerySets)用来返回类似的对象。
 
 在下一章中，你会学习到如何创建自定义的模板（temaplate）标签（tags）和过滤器（filters）。你还会构建一个自定义的站点地图和RSS，然后集成一个高级的搜索引擎在你的应用中。
+
 
 ##译者总结：
 第二章翻译的速度超出之前的预期（**渣翻**当然速度快- -|||），在翻译成中文的过程中，我也终于想通了之前看这章时产生的很多困惑点，因为需要根据上下文以及代码执行情况来翻译成最接近原意的中文。接下来要开始翻译第三章，第三章最后集成搜索引擎的部分我非常排斥，因为这部分照书的操作下来竟然是失败的。。。再看吧，也许通过翻译我能最终执行成功。不过在翻译第三章之前，我要花点时间编辑下前两章的翻译，修改一些语句不通的地方，以及加入更多的我自己学习过程中的理解，就这样。
