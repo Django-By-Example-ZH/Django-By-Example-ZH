@@ -1,7 +1,7 @@
 书籍出处：https://www.packtpub.com/web-development/django-example
 原作者：Antonio Melé
 
-（译者注：还有4章！还有4章全书就翻译完成了！）
+（译者注：还有4章！还有4章全书就翻译完成了！！）
 
 #第八章
 
@@ -44,7 +44,10 @@ Django-paypal是一个第三方django应用，它可以简化集成PayPal到Djan
 编辑你的项目中的*settings.py*文件，添加'paypal.standard.ipn'到*INSTALLED_APPS*设置中，如下所示：
 
 ```python
-INSTALLED_APPS = (    # ...    'paypal.standard.ipn',)
+INSTALLED_APPS = (
+    # ...
+    'paypal.standard.ipn',
+)
 ```
 这个应用提供自django-paypal来集成PayPal支付标准通过**Instant Payment Notification(IPN)**。我们之后会操作支付通知。
 
@@ -52,7 +55,8 @@ INSTALLED_APPS = (    # ...    'paypal.standard.ipn',)
 
 ```python
 # django-paypal settings
-PAYPAL_RECEIVER_EMAIL = 'mypaypalemail@myshop.com'PAYPAL_TEST = True
+PAYPAL_RECEIVER_EMAIL = 'mypaypalemail@myshop.com'
+PAYPAL_TEST = True
 ```
 
 以上两个设置含义如下：
@@ -67,7 +71,11 @@ PAYPAL_RECEIVER_EMAIL = 'mypaypalemail@myshop.com'PAYPAL_TEST = True
 你会看到如下类似的输出：
 
 ```shell
-Running migrations:    Rendering model states... DONE    Applying ipn.0001_initial... OK    Applying ipn.0002_paypalipn_mp_id... OK    Applying ipn.0003_auto_20141117_1647... OK
+Running migrations:
+    Rendering model states... DONE
+    Applying ipn.0001_initial... OK
+    Applying ipn.0002_paypalipn_mp_id... OK
+    Applying ipn.0003_auto_20141117_1647... OK
 ```
 
 django-paypal的模型（models）如今已经同步到了数据库中。你还需要添加django-paypal的URL模式到你的项目中。编辑主的*urls.py*文件，该文件位于*myshop*目录，然后添加以下的URL模式。记住粘贴该URL模式要在*shop.urls*模式之前为了避免错误的模式匹配：
@@ -95,24 +103,33 @@ django-paypal的模型（models）如今已经同步到了数据库中。你还�
 编辑你的项目的*settings.py*文件，添加'payment'到*INSTALLED_APPS*设置中，如下所示：
 
 ```python
-INSTALLED_APPS = (    # ...    'paypal.standard.ipn',    'payment',)
+INSTALLED_APPS = (
+    # ...
+    'paypal.standard.ipn',
+    'payment',
+)
 ```
 
 *payment*应用现在已经在项目中激活。编辑*orders*应用的*views.py*文件并且确保包含以下导入：
 
 ```python
-from django.shortcuts import render, redirectfrom django.core.urlresolvers import reverse
+from django.shortcuts import render, redirect
+from django.core.urlresolvers import reverse
 ```
 
 替换以下*order_create*视图（view）的内容：
 
-```python# launch asynchronous taskorder_created.delay(order.id)return render(request, 'orders/order/created.html', locals())
+```python
+# launch asynchronous task
+order_created.delay(order.id)
+return render(request, 'orders/order/created.html', locals())
 ```
 
 新的内容为：
 
 ```python
-# launch asynchronous taskorder_created.delay(order.id) # set the order in the session
+# launch asynchronous task
+order_created.delay(order.id) # set the order in the session
 request.session['order_id'] = order.id # redirect to the payment
 return redirect(reverse('payment:process'))
 ```
@@ -122,9 +139,35 @@ return redirect(reverse('payment:process'))
 编辑*payment*应用的*views.py*文件然后添加如下代码：
 
 ```python
-from decimal import Decimalfrom django.conf import settingsfrom django.core.urlresolvers import reversefrom django.shortcuts import render, get_object_or_404from paypal.standard.forms import PayPalPaymentsFormfrom orders.models import Order
-def payment_process(request):    order_id = request.session.get('order_id')    order = get_object_or_404(Order, id=order_id)    host = request.get_host()    paypal_dict = {        'business': settings.PAYPAL_RECEIVER_EMAIL,        'amount': '%.2f' % order.get_total_cost().quantize(                                                Decimal('.01')),        'item_name': 'Order {}'.format(order.id),        'invoice': str(order.id),        'currency_code': 'USD',        'notify_url': 'http://{}{}'.format(host,                                        reverse('paypal-ipn')),        'return_url': 'http://{}{}'.format(host,                                        reverse('payment:done')),        'cancel_return': 'http://{}{}'.format(host,
-                                    reverse('payment:canceled')),       }       form = PayPalPaymentsForm(initial=paypal_dict)       return render(request,                     'payment/process.html',                     {'order': order, 'form':form})
+from decimal import Decimal
+from django.conf import settings
+from django.core.urlresolvers import reverse
+from django.shortcuts import render, get_object_or_404
+from paypal.standard.forms import PayPalPaymentsForm
+from orders.models import Order
+
+def payment_process(request):
+    order_id = request.session.get('order_id')
+    order = get_object_or_404(Order, id=order_id)
+    host = request.get_host()
+    paypal_dict = {
+        'business': settings.PAYPAL_RECEIVER_EMAIL,
+        'amount': '%.2f' % order.get_total_cost().quantize(
+                                                Decimal('.01')),
+        'item_name': 'Order {}'.format(order.id),
+        'invoice': str(order.id),
+        'currency_code': 'USD',
+        'notify_url': 'http://{}{}'.format(host,
+                                        reverse('paypal-ipn')),
+        'return_url': 'http://{}{}'.format(host,
+                                        reverse('payment:done')),
+        'cancel_return': 'http://{}{}'.format(host,
+                                    reverse('payment:canceled')),
+       }
+       form = PayPalPaymentsForm(initial=paypal_dict)
+       return render(request,
+                     'payment/process.html',
+                     {'order': order, 'form':form})
 ```
 
 在`payment_process`视图（view）中，我们生成了一个PayPal的**Buy now**按钮用来支付一个订单。首先，我们拿到当前的订单从`order_id`会话键中，这个键值被之前的`order_create`视图（view）设置。我们拿到这个`order`对象通过给予的ID并且构建一个新的`PayPalPaymentsForm`，该表单表单包含以下字段：
@@ -143,14 +186,26 @@ from decimal import Decimalfrom django.conf import settingsfrom django.core.ur
 
 ```python
 from django.views.decorators.csrf import csrf_exempt
-@csrf_exemptdef payment_done(request):    return render(request, 'payment/done.html')
-    @csrf_exemptdef payment_canceled(request):    return render(request, 'payment/canceled.html')
+
+@csrf_exempt
+def payment_done(request):
+    return render(request, 'payment/done.html')
+    
+@csrf_exempt
+def payment_canceled(request):
+    return render(request, 'payment/canceled.html')
 ```
 
 我们使用`csrf_exempt`装饰器来避免Django期待一个CSRF标记，因为PayPal能重定向用户到以上两个视图（views）通过POST渠道。创建新的文件在*payment*应用目录下并且命名为*urls.py*。添加以下代码：
 
 ```python
-from django.conf.urls import urlfrom . import viewsurlpatterns = [    url(r'^process/$', views.payment_process, name='process'),    url(r'^done/$', views.payment_done, name='done'),    url(r'^canceled/$', views.payment_canceled, name='canceled'),]
+from django.conf.urls import url
+from . import views
+urlpatterns = [
+    url(r'^process/$', views.payment_process, name='process'),
+    url(r'^done/$', views.payment_done, name='done'),
+    url(r'^canceled/$', views.payment_canceled, name='canceled'),
+]
 ```
 
 这些URL是给支付工作流的。我们已经包含了以下URL模式：
@@ -168,15 +223,24 @@ from django.conf.urls import urlfrom . import viewsurlpatterns = [    url(r'^
 创建以下文件建构在*payment*应用目录下：
 
 ```shell
-templates/    payment/        process.html        done.html        canceled.html
+templates/
+    payment/
+        process.html
+        done.html
+        canceled.html
 ```
 
 编辑*payment/process.html*模板（template）并且添加以下代码：
 
 ```html
 {% extends "shop/base.html" %}
-{% block title %}Pay using PayPal{% endblock %}
-{% block content %}  <h1>Pay using PayPal</h1>  {{ form.render }}{% endblock %}
+
+{% block title %}Pay using PayPal{% endblock %}
+
+{% block content %}
+  <h1>Pay using PayPal</h1>
+  {{ form.render }}
+{% endblock %}
 ```
 
 这个模板（template）会渲染`PayPalPaymentsForm`并且展示**Buy now**按钮。
@@ -184,7 +248,11 @@ templates/    payment/        process.html        done.html        canceled.
 编辑*payment/done.html*模板（template）并且添加如下代码：
 
 ```html
-{% extends "shop/base.html" %}{% block content %}    <h1>Your payment was successful</h1>    <p>Your payment has been successfully received.</p>{% endblock %}
+{% extends "shop/base.html" %}
+{% block content %}
+    <h1>Your payment was successful</h1>
+    <p>Your payment has been successfully received.</p>
+{% endblock %}
 ```
 
 这个模板（template）的页面给用户重定向当成功支付之后。
@@ -192,7 +260,11 @@ templates/    payment/        process.html        done.html        canceled.
 编辑*payment/canceled.html*模板（template）并且添加以下代码：
 
 ```html
-{% extends "shop/base.html" %}{% block content %}    <h1>Your payment has not been processed</h1>    <p>There was a problem processing your payment.</p>{% endblock %}
+{% extends "shop/base.html" %}
+{% block content %}
+    <h1>Your payment has not been processed</h1>
+    <p>There was a problem processing your payment.</p>
+{% endblock %}
 ```
 
 这个模板（template）的页面给用户重定向当有这个支付过程出现问题或者用户取消了这次支付。
@@ -253,10 +325,21 @@ django-paypal应用内置两种不同的信号给IPNs。如下：
 创建新的文件在*payment*应用目录下，并且命名为*signals.py*，添加如下代码：
 
 ```python
-from django.shortcuts import get_object_or_404from paypal.standard.models import ST_PP_COMPLETEDfrom paypal.standard.ipn.signals import valid_ipn_receivedfrom orders.models import Order
+from django.shortcuts import get_object_or_404
+from paypal.standard.models import ST_PP_COMPLETED
+from paypal.standard.ipn.signals import valid_ipn_received
+from orders.models import Order
 
-def payment_notification(sender, **kwargs):    ipn_obj = sender    if ipn_obj.payment_status == ST_PP_COMPLETED:        # payment was successful        order = get_object_or_404(Order, id=ipn_obj.invoice)        # mark the order as paid        order.paid = True        order.save()
-        valid_ipn_received.connect(payment_notification)
+def payment_notification(sender, **kwargs):
+    ipn_obj = sender
+    if ipn_obj.payment_status == ST_PP_COMPLETED:
+        # payment was successful
+        order = get_object_or_404(Order, id=ipn_obj.invoice)
+        # mark the order as paid
+        order.paid = True
+        order.save()
+        
+valid_ipn_received.connect(payment_notification)
 ```
 
 我们连接`payment_notification`接收函数给django-paypal提供的`valid_ipn_received`信号。这个接收函数工作如下：
@@ -276,9 +359,14 @@ def payment_notification(sender, **kwargs):    ipn_obj = sender    if ipn_obj.
 
 ```python
 from django.apps import AppConfig
-class PaymentConfig(AppConfig):    name = 'payment'
-    verbose_name = 'Payment'    
-    def ready(self):        # import signal handlers        import payment.signals
+
+class PaymentConfig(AppConfig):
+    name = 'payment'
+    verbose_name = 'Payment'
+    
+    def ready(self):
+        # import signal handlers
+        import payment.signals
 ```
 
 在上述代码中，我们定义了一个定制`AppConfif`类给*payment*应用。`name`参数是这个应用的名字，*verbose_name*包含可读的样式。我们导入信号方法在`ready()`方法中确保它们会被加载当这个应用初始化的时候。
@@ -298,8 +386,14 @@ from django.apps import AppConfig
 通过这条命名，你告诉Ngrok去创建一条隧道给你的本地主机在端口8000上并且分配一个Internet可访问主机名给它。你可以看到如下类似输出：
 
 ```shell
-Tunnel Status     onlineVersion           2.0.17/2.0.17Web Interface     http://127.0.0.1:4040Forwarding        http://1a1b50f2.ngrok.io -> localhost:8000Forwarding        https://1a1b50f2.ngrok.io -> localhost:8000
-Connnections      ttl     opn     rt1     rt5     p50     p90                  0       0       0.00    0.00    0.00    0.00
+Tunnel Status     online
+Version           2.0.17/2.0.17
+Web Interface     http://127.0.0.1:4040
+Forwarding        http://1a1b50f2.ngrok.io -> localhost:8000
+Forwarding        https://1a1b50f2.ngrok.io -> localhost:8000
+
+Connnections      ttl     opn     rt1     rt5     p50     p90
+                  0       0       0.00    0.00    0.00    0.00
 ```
 
 Ngrok告诉我们关于我们的站点，运行在本地8000端口使用Django开发服务器，已经可以在Internet访问到通过URLs http://1a1b50f2.ngrok.io 以及 https://1a1b50f2.ngrok.io ，前者是HTTP，后者是HTTPS。Ngrok还提供一个URL来访问一个web接口用来显示信息关于发送到这个服务的请求。
@@ -307,7 +401,8 @@ Ngrok告诉我们关于我们的站点，运行在本地8000端口使用Django�
 打开Ngrok提供的URL在浏览器中；例如，http://1a1b50f2.ngrok.io 。添加一些产品到购物车中，放置一个订单，然后使用你的PayPal测试账户进行支付。这个时候，PayPal将能够拿到这个URL，这个URL由`PayPalPaymentsForm`的`notify_url`字段生成，在`payment_process`视图（view）中。如果你看一下这个渲染过的表单，你会看到这个HTML表单字段看上去如下所示：
 
 ```html
-<input id="id_notify_url" name="notify_url" type="hidden"value="http://1a1b50f2.ngrok.io/paypal/">
+<input id="id_notify_url" name="notify_url" type="hidden"
+value="http://1a1b50f2.ngrok.io/paypal/">
 ```
 
 在结束支付过程之后，打开 http://127.0.0.1:8000/admin/ipn/paypalipn/ 在你的浏览器中。你会看到一个IPN对象对应最新的支付状态为**Completed**。这个对象包含所有的支付信息，该对象由PayPal发送给你提供给IPN通知的URL。IPN管理列展示页面看上去如下所示：
@@ -345,8 +440,30 @@ Django提供你多种不同的选项来定制管理平台站点。我们将要�
 我们将要创建一个定制管理操作来下载订单列表的CSV文件。编辑*orders*应用的*admin.py*文件，添加如下代码在`OrderAdmin`类之前：
 
 ```python
-import csvimport datetimefrom django.http import HttpResponsedef export_to_csv(modeladmin, request, queryset):
-    opts = modeladmin.model._meta    response = HttpResponse(content_type='text/csv')    response['Content-Disposition'] = 'attachment; \           filename={}.csv'.format(opts.verbose_name)    writer = csv.writer(response)    fields = [field for field in opts.get_fields() if not field.many_to_many and not field.one_to_many]    # Write a first row with header information    writer.writerow([field.verbose_name for field in fields])    # Write data rows    for obj in queryset:        data_row = []        for field in fields:            value = getattr(obj, field.name)            if isinstance(value, datetime.datetime):                value = value.strftime('%d/%m/%Y')            data_row.append(value)        writer.writerow(data_row)    return responseexport_to_csv.short_description = 'Export to CSV'
+import csv
+import datetime
+from django.http import HttpResponse
+def export_to_csv(modeladmin, request, queryset):
+
+    opts = modeladmin.model._meta
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; \
+           filename={}.csv'.format(opts.verbose_name)
+    writer = csv.writer(response)
+    fields = [field for field in opts.get_fields() if not field.many_to_many and not field.one_to_many]
+    # Write a first row with header information
+    writer.writerow([field.verbose_name for field in fields])
+    # Write data rows
+    for obj in queryset:
+        data_row = []
+        for field in fields:
+            value = getattr(obj, field.name)
+            if isinstance(value, datetime.datetime):
+                value = value.strftime('%d/%m/%Y')
+            data_row.append(value)
+        writer.writerow(data_row)
+    return response
+export_to_csv.short_description = 'Export to CSV'
 ```
 
 在这代码中，我们执行以下任务：
@@ -363,7 +480,9 @@ import csvimport datetimefrom django.http import HttpResponsedef export_to_cs
 最后，添加新的`export_to_csv`管理操作给`OrderAdmin`类如下所示：
 
 ```python
-class OrderAdmin(admin.ModelAdmin):    # ...    actions = [export_to_csv]
+class OrderAdmin(admin.ModelAdmin):
+    # ...
+    actions = [export_to_csv]
 ```
 
 打开 http://127.0.0.1:8000/admin/orders/order/ 在你的浏览器中。管理操作看上去如下所示：
@@ -373,7 +492,10 @@ class OrderAdmin(admin.ModelAdmin):    # ...    actions = [export_to_csv]
 选择一些订单然后选择**Export to CSV**操作从下拉选框中，之后点击**Go**按钮。你的浏览器会下载生成的CSV文件名为*order.csv*。打开下载的文件使用一个文本编辑器。你会看到的内容如以下的格式，包含一个头行以及你之前选择的每行订单对象：
 
 ```
-ID,first name,last name,email,address,postalcode,city,created,updated,paid3,Antonio,Melé,antonio.mele@gmail.com,Bank Street 33,WS J11,London,25/05/2015,25/05/2015,False...
+ID,first name,last name,email,address,postal
+code,city,created,updated,paid
+3,Antonio,Melé,antonio.mele@gmail.com,Bank Street 33,WS J11,London,25/05/2015,25/05/2015,False
+...
 ```
 
 如你所见，创建管理操作是非常简单的。
@@ -385,8 +507,16 @@ ID,first name,last name,email,address,postalcode,city,created,updated,paid3,An
 让我们创建一个定制视图（view）来展示关于一个订单的信息。编辑*orders*应用下的*views.py*文件，添加以下代码：
 
 ```python
-from django.contrib.admin.views.decorators import staff_member_requiredfrom django.shortcuts import get_object_or_404from .models import Order
-@staff_member_requireddef admin_order_detail(request, order_id):    order = get_object_or_404(Order, id=order_id)    return render(request,                  'admin/orders/order/detail.html',                  {'order': order})
+from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import get_object_or_404
+from .models import Order
+
+@staff_member_required
+def admin_order_detail(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    return render(request,
+                  'admin/orders/order/detail.html',
+                  {'order': order})
 ```
 
 这个`staff_member_required`装饰器检查用户请求这个页面的`is_active`以及`is_staff`字段是被设置为`True`。在这个视图（view）中，我们获取`Order`对象通过给予的id以及渲染一个模板来展示这个订单。
@@ -394,31 +524,109 @@ from django.contrib.admin.views.decorators import staff_member_requiredfrom dja
 现在，编辑*orders*应用中的*urls.py*文件并且添加以下URL模式：
 
 ```python
-url(r'^admin/order/(?P<order_id>\d+)/$',    views.admin_order_detail,    name='admin_order_detail'),
+url(r'^admin/order/(?P<order_id>\d+)/$',
+    views.admin_order_detail,
+    name='admin_order_detail'),
 ```
 
 创建以下文件结构在*orders*应用的*templates/*目录下：
 
 ```shell
-admin/    orders/        order/            detail.html
+admin/
+    orders/
+        order/
+            detail.html
 ```
 
 编辑*detail.html*模板（template），添加以下内容：
 
 ```html
-{% extends "admin/base_site.html" %}{% load static %}
-{% block extrastyle %}     <link rel="stylesheet" type="text/css" href="{% static "css/admin.css" %}" />{% endblock %}
-{% block title %}     Order {{ order.id }} {{ block.super }}{% endblock %}
-{% block breadcrumbs %}  <div class="breadcrumbs">    <a href="{% url "admin:index" %}">Home</a> &rsaquo;    <a href="{% url "admin:orders_order_changelist" %}">Orders</a>
-    &rsaquo;    <a href="{% url "admin:orders_order_change" order.id %}">Order {{ order.id }}</a>    &rsaquo; Detail  </div>{% endblock %}
-{% block content %}  <h1>Order {{ order.id }}</h1>  <ul class="object-tools">    <li>      <a href="#" onclick="window.print();">Print order</a>    </li> 
-  </ul>  <table> 
-    <tr>      <th>Created</th>      <td>{{ order.created }}</td>    </tr>    <tr>      <th>Customer</th>      <td>{{ order.first_name }} {{ order.last_name }}</td>    </tr> 
-    <tr>      <th>E-mail</th>      <td><a href="mailto:{{ order.email }}">{{ order.email }}</a></td>    </tr>    <tr>
-    <th>Address</th>    <td>{{ order.address }}, {{ order.postal_code }} {{ order.city}}</td>  </tr> 
-    <tr>      <th>Total amount</th>      <td>${{ order.get_total_cost }}</td>    </tr>    <tr>      <th>Status</th>      <td>{% if order.paid %}Paid{% else %}Pending payment{% endif %}</td> 
-    </tr>  </table>
-    <div class="module">    <div class="tabular inline-related last-related">      <table>        <h2>Items bought</h2>        <thead>          <tr>            <th>Product</th>            <th>Price</th>            <th>Quantity</th>            <th>Total</th>          </tr>        </thead>        <tbody>          {% for item in order.items.all %}            <tr class="row{% cycle "1" "2" %}">              <td>{{ item.product.name }}</td>              <td class="num">${{ item.price }}</td>              <td class="num">{{ item.quantity }}</td>              <td class="num">${{ item.get_cost }}</td>            </tr>          {% endfor %}          <tr class="total">            <td colspan="3">Total</td>            <td class="num">${{ order.get_total_cost }}</td>          </tr>        </tbody>      </table>    </div>  </div>{% endblock %}
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block extrastyle %}
+     <link rel="stylesheet" type="text/css" href="{% static "css/admin.css" %}" />
+{% endblock %}
+
+{% block title %}
+     Order {{ order.id }} {{ block.super }}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <div class="breadcrumbs">
+    <a href="{% url "admin:index" %}">Home</a> &rsaquo;
+    <a href="{% url "admin:orders_order_changelist" %}">Orders</a>
+    &rsaquo;
+    <a href="{% url "admin:orders_order_change" order.id %}">Order {{ order.id }}</a>
+    &rsaquo; Detail
+  </div>
+{% endblock %}
+
+{% block content %}
+  <h1>Order {{ order.id }}</h1>
+  <ul class="object-tools">
+    <li>
+      <a href="#" onclick="window.print();">Print order</a>
+    </li> 
+  </ul>
+  <table> 
+    <tr>
+      <th>Created</th>
+      <td>{{ order.created }}</td>
+    </tr>
+    <tr>
+      <th>Customer</th>
+      <td>{{ order.first_name }} {{ order.last_name }}</td>
+    </tr> 
+    <tr>
+      <th>E-mail</th>
+      <td><a href="mailto:{{ order.email }}">{{ order.email }}</a></td>
+    </tr>
+    <tr>
+    <th>Address</th>
+    <td>{{ order.address }}, {{ order.postal_code }} {{ order.city
+}}</td>
+  </tr> 
+    <tr>
+      <th>Total amount</th>
+      <td>${{ order.get_total_cost }}</td>
+    </tr>
+    <tr>
+      <th>Status</th>
+      <td>{% if order.paid %}Paid{% else %}Pending payment{% endif %}</td> 
+    </tr>
+  </table>
+  
+  <div class="module">
+    <div class="tabular inline-related last-related">
+      <table>
+        <h2>Items bought</h2>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Price</th>
+            <th>Quantity</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in order.items.all %}
+            <tr class="row{% cycle "1" "2" %}">
+              <td>{{ item.product.name }}</td>
+              <td class="num">${{ item.price }}</td>
+              <td class="num">{{ item.quantity }}</td>
+              <td class="num">${{ item.get_cost }}</td>
+            </tr>
+          {% endfor %}
+          <tr class="total">
+            <td colspan="3">Total</td>
+            <td class="num">${{ order.get_total_cost }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}
 ```
 
 这个模板（template）是用来显示一个订单详情在管理平台站点中。这个模板（template）扩展Djnago的管理平台站点的*admin/base_site.html*模板，它包含管理的主要HTML结构和CSS样式。我们加载定制的静态文件*css/admin.css*。
@@ -434,7 +642,11 @@ admin/    orders/        order/            detail.html
 最后，让我们添加一个链接给每个*Order*对象在管理平台站点的列展示页面。编辑*orders*应用的*admin.py*文件然后添加以下代码，在`OrderAdmin`类上面：
 
 ```python
-from django.core.urlresolvers import reversedef order_detail(obj):    return '<a href="{}">View</a>'.format(        reverse('orders:admin_order_detail', args=[obj.id]))order_detail.allow_tags = True
+from django.core.urlresolvers import reverse
+def order_detail(obj):
+    return '<a href="{}">View</a>'.format(
+        reverse('orders:admin_order_detail', args=[obj.id]))
+order_detail.allow_tags = True
 ```
 
 这个函数需要一个*Order*对象作为参数并且返回一个HTML链接给`admind_order_detail` URL。Django会避开默认的HTML输出。我们必须设置`allow_tags`属性为`True`来避开auto-escaping。
@@ -444,7 +656,8 @@ from django.core.urlresolvers import reversedef order_detail(obj):    return '
 之后，编辑`OrderAdmin`类来展示链接：
 
 ```python
-class OrderAdmin(admin.ModelAdmin):    list_display = ['id',
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['id',
                     'first_name', 
                     # ... 
                     'updated', 
@@ -480,12 +693,54 @@ class OrderAdmin(admin.ModelAdmin):    list_display = ['id',
 创建一个新的模板（template）文件在*orders*应用的*templates/orders/order/目录下命名为*pdf.html*。添加如下内容：
 
 ```html
-<html><body>     <h1>My Shop</h1>     <p>       Invoice no. {{ order.id }}</br>       <span class="secondary">         {{ order.created|date:"M d, Y" }}       </span>     </p>
-     <h3>Bill to</h3>     <p>       {{ order.first_name }} {{ order.last_name }}<br>       {{ order.email }}<br>       {{ order.address }}<br>       {{ order.postal_code }}, {{ order.city }}     </p>
-     <h3>Items bought</h3>     <table>       <thead> 
-         <tr>           <th>Product</th>           <th>Price</th>           <th>Quantity</th>           <th>Cost</th>         </tr>       </thead>       <tbody>         {% for item in order.items.all %}           <tr class="row{% cycle "1" "2" %}">             <td>{{ item.product.name }}</td>             <td class="num">${{ item.price }}</td>             <td class="num">{{ item.quantity }}</td>             <td class="num">${{ item.get_cost }}</td>           </tr>         {% endfor %}         <tr class="total">           <td colspan="3">Total</td>           <td class="num">${{ order.get_total_cost }}</td>         </tr>       </tbody>     </table>
+<html>
+<body>
+     <h1>My Shop</h1>
+     <p>
+       Invoice no. {{ order.id }}</br>
+       <span class="secondary">
+         {{ order.created|date:"M d, Y" }}
+       </span>
+     </p>
+
+     <h3>Bill to</h3>
+     <p>
+       {{ order.first_name }} {{ order.last_name }}<br>
+       {{ order.email }}<br>
+       {{ order.address }}<br>
+       {{ order.postal_code }}, {{ order.city }}
+     </p>
+     <h3>Items bought</h3>
+     <table>
+       <thead> 
+         <tr>
+           <th>Product</th>
+           <th>Price</th>
+           <th>Quantity</th>
+           <th>Cost</th>
+         </tr>
+       </thead>
+       <tbody>
+         {% for item in order.items.all %}
+           <tr class="row{% cycle "1" "2" %}">
+             <td>{{ item.product.name }}</td>
+             <td class="num">${{ item.price }}</td>
+             <td class="num">{{ item.quantity }}</td>
+             <td class="num">${{ item.get_cost }}</td>
+           </tr>
+         {% endfor %}
+         <tr class="total">
+           <td colspan="3">Total</td>
+           <td class="num">${{ order.get_total_cost }}</td>
+         </tr>
+       </tbody>
+     </table>
      
-     <span class="{% if order.paid %}paid{% else %}pending{% endif %}">       {% if order.paid %}Paid{% else %}Pending payment{% endif %}     </span></body></html>
+     <span class="{% if order.paid %}paid{% else %}pending{% endif %}">
+       {% if order.paid %}Paid{% else %}Pending payment{% endif %}
+     </span>
+</body>
+</html>
 ```
 
 这个模板（template）就是PDF发票。在这个模板（template）中，我们展示所有订单详情以及一个HTML `<table>` 元素包含所有商品。我们还包含了一条消息来展示如果该订单已经支付或者支付还在进行中。
@@ -495,8 +750,23 @@ class OrderAdmin(admin.ModelAdmin):    list_display = ['id',
 我们将要创建一个视图（view）来生成PDF发票给存在的订单通过使用管理平台站点。编辑*order*应用的*views.py*文件添加如下代码：
 
 ```python
-from django.conf import settingsfrom django.http import HttpResponsefrom django.template.loader import render_to_stringimport weasyprint
-@staff_member_requireddef admin_order_pdf(request, order_id):    order = get_object_or_404(Order, id=order_id)    html = render_to_string('orders/order/pdf.html',                            {'order': order})    response = HttpResponse(content_type='application/pdf')    response['Content-Disposition'] = 'filename=\           "order_{}.pdf"'.format(order.id)    weasyprint.HTML(string=html).write_pdf(response,        stylesheets=[weasyprint.CSS(            settings.STATIC_ROOT + 'css/pdf.css')])    return response
+from django.conf import settings
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+import weasyprint
+
+@staff_member_required
+def admin_order_pdf(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+    html = render_to_string('orders/order/pdf.html',
+                            {'order': order})
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'filename=\
+           "order_{}.pdf"'.format(order.id)
+    weasyprint.HTML(string=html).write_pdf(response,
+        stylesheets=[weasyprint.CSS(
+            settings.STATIC_ROOT + 'css/pdf.css')])
+    return response
 ```
 
 这个视图（view）用来生成一个PDF发票给一个订单。我们使用`staff_member_required`装饰器来确保只有管理人员能够访问这个视图（view）。我们获取*Order*对象通过给予的ID并且我们使用`rander_to_string()`函数提供自Django来渲染*orders/order/pdf.html*。这个渲染过的HTML会被保存到`html`变量中。之后，我们生成一个新的`HttpResponse`对象指定`application/pdf`的内容类型并且包含`Content-Disposition`头来指定这个文件名。我们使用WeasyPrint来生成一个PDF文件从渲染的HTML代码中并且将该文件写入`HttpResponse`对象中。我们加载它从本地路径通过使用`STATIC_ROOT`设置。最后，我们返回这个生成的响应。
@@ -508,8 +778,12 @@ from django.conf import settingsfrom django.http import HttpResponsefrom djang
 之后，运行命令`python manage.py collectstatic`。你会在输出末尾看到如下输出：
 
 ```shell
-You have requested to collect static files at the destinationlocation as specified in your settings:       
-    code/myshop/staticThis will overwrite existing files!Are you sure you want to do this?
+You have requested to collect static files at the destination
+location as specified in your settings:
+       
+    code/myshop/static
+This will overwrite existing files!
+Are you sure you want to do this?
 ```
 
 输入*yes*然后回车。你会得到一条消息，告知那个静态文件已经复制到`STATIC_ROOT`目录中。
@@ -519,19 +793,27 @@ You have requested to collect static files at the destinationlocation as specif
 编辑*orders*应用目录下的*urls.py*文件并且添加如下URL模式：
 
 ```python
-url(r'^admin/order/(?P<order_id>\d+)/pdf/$',    views.admin_order_pdf,    name='admin_order_pdf'),
+url(r'^admin/order/(?P<order_id>\d+)/pdf/$',
+    views.admin_order_pdf,
+    name='admin_order_pdf'),
 ```
 
 现在，我们可以编辑管理列展示页面给*Order*模型（model）来添加一个链接给PDF文件给每一个结果。编辑*orders*应用的*admin.py*文件并且添加以下代码在`OrderAdmin`类上面：
 
 ```python
-def order_pdf(obj):    return '<a href="{}">PDF</a>'.format(        reverse('orders:admin_order_pdf', args=[obj.id]))order_pdf.allow_tags = Trueorder_pdf.short_description = 'PDF bill'
+def order_pdf(obj):
+    return '<a href="{}">PDF</a>'.format(
+        reverse('orders:admin_order_pdf', args=[obj.id]))
+order_pdf.allow_tags = True
+order_pdf.short_description = 'PDF bill'
 ```
 
 添加`order_pdf`给`OrderAdmin`类的`list_display`属性：
 
 ```python
-class OrderAdmin(admin.ModelAdmin):    list_display = ['id',                    # ... 
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['id',
+                    # ... 
                     order_detail, 
                     order_pdf]
 ```
@@ -555,14 +837,36 @@ class OrderAdmin(admin.ModelAdmin):    list_display = ['id',                  
 让我们发送一封e-mail给我们的顾客包含生成的PDF发表但一个支付被接收的时候。编辑*payment*应用下的*signals.py*文件并且添加如下导入：
 
 ```python
-from django.template.loader import render_to_stringfrom django.core.mail import EmailMessagefrom django.conf import settingsimport weasyprintfrom io import BytesIO
+from django.template.loader import render_to_string
+from django.core.mail import EmailMessage
+from django.conf import settings
+import weasyprint
+from io import BytesIO
 ```
 
 之后添加如下代码在`order.save()`行之后，需要同样的缩进等级：
 
 ```python
-# create invoice e-mailsubject = 'My Shop - Invoice no. {}'.format(order.id)message = 'Please, find attached the invoice for your recentpurchase.'email = EmailMessage(subject,                    message,                    'admin@myshop.com',                    [order.email])# generate PDFhtml = render_to_string('orders/order/pdf.html', {'order': order})out = BytesIO()
-stylesheets=[weasyprint.CSS(settings.STATIC_ROOT + 'css/pdf.css')]weasyprint.HTML(string=html).write_pdf(out,                                        stylesheets=stylesheets)# attach PDF fileemail.attach('order_{}.pdf'.format(order.id),            out.getvalue(),            'application/pdf')# send e-mailemail.send()
+# create invoice e-mail
+subject = 'My Shop - Invoice no. {}'.format(order.id)
+message = 'Please, find attached the invoice for your recent
+purchase.'
+email = EmailMessage(subject,
+                    message,
+                    'admin@myshop.com',
+                    [order.email])
+# generate PDF
+html = render_to_string('orders/order/pdf.html', {'order': order})
+out = BytesIO()
+stylesheets=[weasyprint.CSS(settings.STATIC_ROOT + 'css/pdf.css')]
+weasyprint.HTML(string=html).write_pdf(out,
+                                        stylesheets=stylesheets)
+# attach PDF file
+email.attach('order_{}.pdf'.format(order.id),
+            out.getvalue(),
+            'application/pdf')
+# send e-mail
+email.send()
 ```
 
 在这个信号中，我们使用Django提供的`EmailMessage`类来创建一个e-mail对象。之后我们渲染这个模板（template）到`html`变量中。我们生成PDF文件从渲染的模板（template）中，并且我们输出它到一个`BytesIO`实例中，该实例是一个内容字节缓存。之后我们附加这个生成的PDF文件到`EmailMessage`对象通过使用它的`attach()`方法，包含这个`out`缓存的内容。
