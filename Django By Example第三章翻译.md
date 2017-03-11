@@ -79,6 +79,7 @@ Django将会使用这个函数名作为标签（tag）名。如果你想使用�
     python manage.py runserver
     
 在浏览器中打开 http://127.0.0.1:8000/blog/ 。你会看到帖子的总数展示在站点的侧边栏（sidebar），如下所示：
+
 ![django-3-1](http://ohqrvqrlb.bkt.clouddn.com/django-3-1.png)
 
 
@@ -115,6 +116,7 @@ Django将会使用这个函数名作为标签（tag）名。如果你想使用�
 这个模板标签（template tag）被调用而且传递了需要展示的帖子数（原文此处 number of comments，应该是写错了)。当前模板（template）在给予上下文（context）的位置会被渲染。
 
 现在，回到浏览器刷新这个页面，你会看到如下图所示：
+
 ![django-3-2](http://ohqrvqrlb.bkt.clouddn.com/django-3-2.png)
 
 最后，我们来创建一个分配标签（assignment tag）。分配标签（assignment tag）类似简单标签（simple tags）但是他们能将变量存储在给予的变量中。我们将会创建一个分配标签（assignment tag）来展示拥有最多评论的帖子。编辑*blog_tags.py*文件，添加如下代码：
@@ -146,6 +148,7 @@ Django将会使用这个函数名作为标签（tag）名。如果你想使用�
 使用分配模板标签（assignment template tags）的方法是*{% template_tag as variable %}*。例如我们的模板标签（template tag），我们使用*{% get_most_commented_posts as most_commented_posts %}*。 使用这样的方式，我们可以存储这个模板标签（template tag）返回的结果到一个新的*most_commented_posts*变量中。这样，我们就可以通过一个无序列表(unordered list)显示返回的帖子。
 
 现在，打开浏览器刷新页面来看下最终的结果，应该如下图所示：
+
 ![django-3-3](http://ohqrvqrlb.bkt.clouddn.com/django-3-3.png)
 
 你可以在 https://docs.djangoproject.com/en/1.8/howto/custom-template-tags/ 页面得到更多的关于定制模板标签（template tags）的信息。
@@ -204,6 +207,7 @@ Django拥有多种内置的模板过滤器（template filters）允许你对模�
     And a [link to the Django website](https://www.djangoproject.com/)
 
 在浏览器中查看帖子的渲染情况，你会看到如下图所示：
+
 ![django-3-4](http://ohqrvqrlb.bkt.clouddn.com/django-3-4.png)
 
 就像你所看到的，定制的模板过滤器（template filters）对于自定义的格式化是非常有用的。你可以在 https://docs.djangoproject.com/en/1.8/howto/custom-template-tags/#writing-custom-templatefilters 页面获取更多关于定制过滤器（filter）的信息。
@@ -282,9 +286,11 @@ Django站点地图（sitemap）框架依赖*django.contrib.sites*模块，这个
     </urlset>
 
 每一个帖子都会根据它的*get_absolute_url()*方法构建URL。如同我们之前在站点地图(sitemap)中所指定的，*lastmode*属性对应该帖子的*publish*日期字段，*changefreq*和*priority*属性也从我们的*PostSitemap*类中带入。你能看到被用来构建URL的域（domain）是*example.com*。这个域（domain）来自一个存储在数据库中的*Site*对象。这个默认的对象是在我们之前同步*sites*框架数据库时创建的。打开  http://127.0.0.1:8000/admin/sites/site/ ，你会看到如下图所示：
+
 ![django-3-5](http://ohqrvqrlb.bkt.clouddn.com/django-3-5.png)
 
 这个列表是为*sites*框架显示的管理视图（admin view）。在这里，你可以设置域（domain）或者主机（host）给*sites*框架使用，而且*sites*应用也依赖它们。为了生成能在我们本地环境可用的URL，更改域（domain）名为*127.0.0.1:8000*，如下图所示：
+
 ![django-3-6](http://ohqrvqrlb.bkt.clouddn.com/django-3-6.png)
 
 为了开发需要我们指向了我们本地主机。在生产环境中，你必须使用你自己的域（domain)名给*sites*框架。
@@ -357,6 +363,7 @@ Django有一个内置的syndication feed框架，你可以用类似的方式（m
     <p><a href="{% url "blog:post_feed" %}">Subscribe to my RSS feed</a></p>
     
 现在，在浏览器中打开 http://127.0.0.1:8000/blog/ 看下侧边栏（sitebar）。这个新链接将会带你去blog的feed：
+
 ![django-3-7](http://ohqrvqrlb.bkt.clouddn.com/django-3-7.png)
 
 ###使用Solr和Haystack添加一个搜索引擎
@@ -384,12 +391,14 @@ Django有一个内置的syndication feed框架，你可以用类似的方式（m
     java -jar start.jar
     
 在浏览器中打开 http://127.0.0.1:8983/solr/ 。你会看到如下图所示：
+
 ![django-3-8](http://ohqrvqrlb.bkt.clouddn.com/django-3-8.png)
 
 以上是*Solr*的管理控制台。这个控制台给你展示了数据统计，允许你管理你的搜索后端，检测索引数据，并且执行查询操作。
 
 ###创建一个Solr core
 Solr允许你隔离每一个core实例。每个Solr **core**是一个**全文搜索引擎**实例，包含了一个Solr配置，一个数据架构（schema），以及其他必须的配置才能使用。Slor允许你在页面上创建和管理cores。一个已经存在的参考例子配置中包含了一个core，名字叫*collection1*。如果你点击**Core Admin**菜单栏， 你可以看到这个core的信息，如下图所示：
+
 ![django-3-9](http://ohqrvqrlb.bkt.clouddn.com/django-3-9.png)
 
 我们要为我们的blog应用创建一个core。首先，我们需要为我们的core创建文件结构。进入*solr-4.10.4/example/*目录下，创建一个新的目录命名为*blog*。然后在*blog*目录下创建空文件和目录，如下所示：
@@ -430,6 +439,7 @@ Solr允许你隔离每一个core实例。每个Solr **core**是一个**全文搜
 这是一个空的**架构（schema）**。这个架构（schema）定义了一些被这个搜索引擎编入索引中字段以及它们的数据类型。我们之后要使用一个定制的架构（schema）。
 
 现在，点击**Core Admin**菜单栏再点击**Add core**按钮。你会看到如下图所示：
+
 ![django-3-10](http://ohqrvqrlb.bkt.clouddn.com/django-3-10.png)
 
 你需要在表单中填写一下数据
@@ -443,6 +453,7 @@ Solr允许你隔离每一个core实例。每个Solr **core**是一个**全文搜
 *name*字段是这个core的命名。*instanceDir*字段表明你的core的目录。*dataDir*是被编入索引的数据将要存放的目录。*config*字段是你的*Solr* XML配置文件名。*schema*字段是你的*Solr* XML 数据架构（schema)文件名。
 
 现在，点击**Add Core**按钮。如果你看到下图所示，说明你的新core已经成功的添加到Solr中：
+
 ![django-3-11](http://ohqrvqrlb.bkt.clouddn.com/django-3-11.png)
 
 ###安装Haystack
@@ -514,6 +525,7 @@ Haystack能和一些搜索引擎后台交互。要使用Solr后端，你还需�
 这个XML架构（schema）是用来给数据做索引（index）到到Solr中。粘贴这个新的架构（schema）到你的Solr文件夹下的*example*目录下的*blog/conf/schema.xml*文件中。*schema.xml*文件也被包含在本章的示例代码中，所以你可以直接从示例代码中复制出来使用。
 
 在浏览器中打开 http://127.0.0.1:8983/solr/ 然后点击**Core Admin**菜单栏，再点击**blog** core，然后再点击**Reload**按钮：
+
 ![django-3-12](http://ohqrvqrlb.bkt.clouddn.com/django-3-12.png)
 
 我们重新载入这个core确保*schema.xml*的改变生效。当core重新载入完毕，新的架构（schema）才对新数据进行索引（index）做好准备。
@@ -533,6 +545,7 @@ Haystack能和一些搜索引擎后台交互。要使用Solr后端，你还需�
     Removing all documents from your index because you said so. All documents removed. Indexing 4 posts
     
 在浏览器中打开 http://127.0.0.1:8983/solr/#/blog 。在**Statistics*下方，你会看到有多少个documents被编入索引（indexed），如下所示：
+
 ![django-3-13](http://ohqrvqrlb.bkt.clouddn.com/django-3-13.png)
 
 现在，在浏览器中打开 http://127.0.0.1:8983/solr/#/blog/query 。这是一个Solr提供的查询接口。点击*Execute query*按钮。默认的会请求在你的core中所有被编入索引（indexde）的documents。你会看到一串带有这个查询结果的*JSON*输出。输出的documents如下所示：
@@ -611,9 +624,11 @@ Haystack能和一些搜索引擎后台交互。要使用Solr后端，你还需�
     url(r'^search/$', views.post_search, name='post_search'),
     
 现在，在浏览器中打开 http://127.0.0.1:8000/blog/search/。你会看到如下图所示的搜索表单（form）：
+
 ![django-3-14](http://ohqrvqrlb.bkt.clouddn.com/django-3-14.png)
 
 现在，输入一个查询条件然后点击**Search**按钮。你会看到查询搜索的结果，如下图所示：
+
 ![django-3-15](http://ohqrvqrlb.bkt.clouddn.com/django-3-15.png)
 
 如今，在你的项目中你已经构建了一个强大的搜索引擎，但这仅仅只是开始，还有更多丰富的功能可以通过*Solr*和Haystack做到。Haystack包含视图（views），表单（forms）以及更多高级功能可以提供给搜索引擎。你可以在 http://django-haystack.readthedocs.org/en/latest/ 页面上获取更多Haystack的信息。
