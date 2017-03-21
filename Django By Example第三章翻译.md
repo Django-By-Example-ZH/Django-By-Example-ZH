@@ -415,13 +415,13 @@ Solr允许你隔离每一个core实例。每个Solr **core**是一个**全文搜
     blog/ 
         data/
 		conf/
-		protwords.txt
-		schema.xml
-		solrconfig.xml
-		stopwords.txt
-		synonyms.txt
-		lang/
-		stopwords_en.txt
+		    protwords.txt
+		    schema.xml
+		    solrconfig.xml
+		    stopwords.txt
+		    synonyms.txt
+		    lang/
+		        stopwords_en.txt
                 
 在*solrconfig.xml*文件中添加如下XML代码：
 
