@@ -38,7 +38,7 @@ source env/myshop/bin/activate
 用以下命令在你的虚拟环境中安装 Django :
 
 ```shell
-pip install django==1.0.6
+pip install django==1.8.6
 ```
 
 创建一个叫做 `myshop` 的新项目，再创建一个叫做 `shop` 的应用，命令如下：
