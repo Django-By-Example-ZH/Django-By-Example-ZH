@@ -381,7 +381,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
          {% endif %}
          <span class="user">
            {% if request.user.is_authenticated %}
-             Hello {{ request.user.first_name }},
+             Hello {{ request.user.username }},
              <a href="{% url "logout" %}">Logout</a>
            {% else %}
              <a href="{% url "login" %}">Log-in</a>
@@ -841,7 +841,8 @@ Django还提供一个方法可以使用你自己定制的模型（model）来替
 ##使用messages框架
 当处理用户的操作时，你可能想要通知你的用户关于他们操作的结果。Django有一个内置的messages框架允许你给你的用户显示一次性的提示。messages框架位于*django.contrib.messages*，当你使用`python manage.py startproject`命令创建一个新项目的时候，messages框架就被默认包含在*settings.py*文件中的*INSTALLED_APPS*中。你会注意到你的设置文件包含了一个名为*django.contrib.messages.middleware.MessageMiddleware*的中间件在*MIDDLEWARE_CLASSES*设置中。messages框架提供了一个简单的方法添加消息给用户。消息被存储在数据库中并且会在用户的下一次请求中展示。你可以在你的视图（views）中导入*messages*模块使用消息messages框架，用简单的快捷方式添加新的messages，如下所示：
 
-    from django.contrib import messages    messages.error(request, 'Something went wrong')
+    from django.contrib import messages
+    messages.error(request, 'Something went wrong')
 
 你可以使用`add_message()`方法创建新的messages或用下方任意一个快捷方法：
 
@@ -853,13 +854,36 @@ Django还提供一个方法可以使用你自己定制的模型（model）来替
 
 让我们显示messages给用户。因为messages框架是被项目全局应用，我们可以在主模板（template）诶用户展示messages。打开*base.html*模板（template）在id为*header*的`<div>`和id为*content*的`<div>`之间添加如下内容：
 
-    {% if messages %}     <ul class="messages">       {% for message in messages %}         <li class="{{ message.tags }}">        {{ message|safe }}            <a href="#" class="close"> </a>         </li>       {% endfor %}     </ul>    {% endif %}
+    {% if messages %}
+     <ul class="messages">
+       {% for message in messages %}
+         <li class="{{ message.tags }}">
+        {{ message|safe }}
+            <a href="#" class="close"> </a>
+         </li>
+       {% endfor %}
+     </ul>
+    {% endif %}
     
 messages框架带有一个上下文环境（context）处理器用来添加一个*messages*变量给请求的上下文环境（context）。所以你可以在模板（template）中使用这个变量用来给用户显示当前的messages。
 
 现在，让我们修改*edit*视图（view）来使用messages框架。编辑应用中的*views.py*文件，使*edit*视图（view）如下所示：
 
-    from django.contrib import messages    @login_required    def edit(request):        if request.method == 'POST':        # ...            if user_form.is_valid() and profile_form.is_valid():                user_form.save()                profile_form.save()                messages.success(request, 'Profile updated '\                                         'successfully')            else:                messages.error(request, 'Error updating your profile')        else:            user_form = UserEditForm(instance=request.user)            # ...    
+    from django.contrib import messages
+    @login_required
+    def edit(request):
+        if request.method == 'POST':
+        # ...
+            if user_form.is_valid() and profile_form.is_valid():
+                user_form.save()
+                profile_form.save()
+                messages.success(request, 'Profile updated '\
+                                         'successfully')
+            else:
+                messages.error(request, 'Error updating your profile')
+        else:
+            user_form = UserEditForm(instance=request.user)
+            # ...    
             
 当用户成功的更新他们的profile时我们就添加了一条成功的message，但如果某个表单（form）无效，我们就添加一个错误message。
 
@@ -891,7 +915,24 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 在你的*account*应用中创建一个新的文件命名为*authentication.py*，为它添加如下代码：
 
-    from django.contrib.auth.models import User    class EmailAuthBackend(object):        """        Authenticate using e-mail account.        """        def authenticate(self, username=None, password=None):            try:                user = User.objects.get(email=username)                if user.check_password(password):                    return user                return None            except User.DoesNotExist:                return None        def get_user(self, user_id):            try:                return User.objects.get(pk=user_id)            except User.DoesNotExist:    return None
+    from django.contrib.auth.models import User
+    class EmailAuthBackend(object):
+        """
+        Authenticate using e-mail account.
+        """
+        def authenticate(self, username=None, password=None):
+            try:
+                user = User.objects.get(email=username)
+                if user.check_password(password):
+                    return user
+                return None
+            except User.DoesNotExist:
+                return None
+        def get_user(self, user_id):
+            try:
+                return User.objects.get(pk=user_id)
+            except User.DoesNotExist:
+    return None
 
 这是一个简单的认证（authentication）后台。`authenticate()`方法接收了*username*和*password*两个可选参数。我们可以使用不同的参数，但是我们需要使用*username*和*password*来确保我们的后台可以立马在认证（authentication）框架视图（views）中工作。以上代码完成了以下工作内容：
 
@@ -900,7 +941,10 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 编辑项目中的*settings.py*文件添加如下设置：
 
-    AUTHENTICATION_BACKENDS = (       'django.contrib.auth.backends.ModelBackend',       'account.authentication.EmailAuthBackend',    )
+    AUTHENTICATION_BACKENDS = (
+       'django.contrib.auth.backends.ModelBackend',
+       'account.authentication.EmailAuthBackend',
+    )
     
 我们保留默认的*ModelBacked*用来保证用户仍然可以通过用户名和密码进行认证，接着我们包含进了我们自己的email-based认证（authentication）后台。现在，在浏览器中打开 http://127.0.0.1:8000/account/login/ 。请记住，Django会对每个后台都尝试进行用户认证（authentication），所以你可以使用用户名或者使用email来进行无缝登录。
 
@@ -917,7 +961,10 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
     
 安装成功后，我们需要在项目*settings.py*文件中的*INSTALLED_APPS*设置中添加*social.apps.django_app.default*：
 
-    INSTALLED_APPS = (        #...        'social.apps.django_app.default',    )
+    INSTALLED_APPS = (
+        #...
+        'social.apps.django_app.default',
+    )
 
 这个*default*应用会在Django项目中添加*python-social-auth*。现在，运行以下命令来同步*python-social-auth*模型（model）到你的数据库中：
 
@@ -925,7 +972,9 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
     
 你会看到如下*default*应用的数据迁移输出：
 
-    Applying default.0001_initial... OK    Applying default.0002_add_related_name... OK    Applying default.0003_alter_email_max_length... OK
+    Applying default.0001_initial... OK
+    Applying default.0002_add_related_name... OK
+    Applying default.0003_alter_email_max_length... OK
 
 *python-social-auth*包含了很多服务的后台。你可以访问 https://python-social-auth.readthedocs.org/en/latest/backends/index.html#supported-backends 看到所有的后台支持。
 
@@ -933,7 +982,8 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 你需要在你的项目中添加社交登录URL模型。打开*bookmarks*项目中的主*urls.py*文件，添加如下URL模型：
 
-    url('social-auth/',        include('social.apps.django_app.urls', namespace='social')),
+    url('social-auth/',
+        include('social.apps.django_app.urls', namespace='social')),
 
 为了确保社交认证（authentication）可以工作，你还需要配置一个*hostname*，因为有些服务不允许重定向到*127.0.0.1*或*localhost*。为了解决这个问题，在*Linux*或者*Mac OSX*下，编辑你的*/etc/hosts*文件添加如下内容：
 
@@ -957,7 +1007,8 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 拷贝**App ID**和**App Secret**关键值，将它们添加在项目中的*settings.py**文件中，如下所示：
 
-    SOCIAL_AUTH_FACEBOOK_KEY = 'XXX' # Facebook App ID    SOCIAL_AUTH_FACEBOOK_SECRET = 'XXX' # Facebook App Secret
+    SOCIAL_AUTH_FACEBOOK_KEY = 'XXX' # Facebook App ID
+    SOCIAL_AUTH_FACEBOOK_SECRET = 'XXX' # Facebook App Secret
     
 此外，你还可以定义一个*SOCIAL_AUTH_FACEBOOK_SCOPE*设置如果你想要访问Facebook用户的额外权限，例如：
 
@@ -965,7 +1016,10 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
     
 最后，打开*registration/login.html*模板（template）然后添加如下代码到*content* block中：
 
-    <div class="social">      <ul>        <li class="facebook"><a href="{% url "social:begin" "facebook" %}">Sign in with Facebook</a></li>      </ul> 
+    <div class="social">
+      <ul>
+        <li class="facebook"><a href="{% url "social:begin" "facebook" %}">Sign in with Facebook</a></li>
+      </ul> 
     </div>
 
 在浏览器中打开 http://mysite.com:8000/account/login/ 。现在你的登录页面会如下图所示：
@@ -994,7 +1048,8 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 拷贝**Consumer Key**和**Consumer Secret**关键值，将它们添加到项目*settings.py*的设置中，如下所示：
 
-    SOCIAL_AUTH_TWITTER_KEY = 'XXX' # Twitter Consumer Key    SOCIAL_AUTH_TWITTER_SECRET = 'XXX' # Twitter Consumer Secret
+    SOCIAL_AUTH_TWITTER_KEY = 'XXX' # Twitter Consumer Key
+    SOCIAL_AUTH_TWITTER_SECRET = 'XXX' # Twitter Consumer Secret
     
 现在，编辑*login.html*模板（template），在`<ul>`元素中添加如下代码：
 
@@ -1031,7 +1086,8 @@ Google首先会询问你配置同意信息页面。这个页面将会展示给�
 
 点击**Create**按钮。你将会获得**Client ID**和**Client Secret**关键值。在你的*settings.py*中添加它们，如下所示：
 
-    SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '' # Google Consumer Key    SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '' # Google Consumer Secret
+    SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '' # Google Consumer Key
+    SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '' # Google Consumer Secret
     
 在Google开发者控制台的左方菜单，**APIs & auth**部分的下方，点击**APIs**链接。你会看到包含所有Google Apis的列表。点击 **Google+ API**然后点击**Enable API**按钮在以下页面中：
 
