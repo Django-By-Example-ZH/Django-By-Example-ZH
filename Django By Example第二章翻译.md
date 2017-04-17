@@ -363,6 +363,7 @@ def post_detail(request, year, month, day, post):
                                    publish__day=day)
     # List of active comments for this post
     comments = post.comments.filter(active=True)
+    new_comment = None
         
     if request.method == 'POST':
         # A comment was posted
@@ -380,6 +381,7 @@ def post_detail(request, year, month, day, post):
                   'blog/post/detail.html',
                   {'post': post,
                   'comments': comments, 
+                  'new_comment': new_comment,
                   'comment_form': comment_form})
 ```
 
@@ -416,7 +418,7 @@ def post_detail(request, year, month, day, post):
 * 显示评论的列表
 * 显示一个表单给用户来添加新的评论
 
-首先，我们来添加评论的总数。打开*blog_detail.html*模板（template）在*content*区块中添加如下代码：
+首先，我们来添加评论的总数。打开*views_detail.html* **（译者注：根据官网最新更正修改，原文是blog_detail.html）**模板（template）在*content*区块中添加如下代码：
 
 ```html
 {% with comments.count as total_comments %}
