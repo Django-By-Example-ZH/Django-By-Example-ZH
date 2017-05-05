@@ -274,7 +274,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
     
 我们将之前创建的*user_login*视图（view）URL模式进行注释，然后使用Django认证（authentication）框架提供的*login*视图（view）。
 
-【译者注】如果使用Django 1.10以上版本，urls.py 需要改写为一下方式(参见源书提供的源代码):
+【译者注】如果使用Django 1.10以上版本，urls.py 需要改写为以下方式(参见源书提供的源代码):
 
 	from django.conf.urls import url
 	from django.contrib.auth.views import login
