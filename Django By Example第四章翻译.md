@@ -17,9 +17,9 @@
 我们要创建一个社交应用允许用户分享他们在网上找到的图片。我们需要为这个项目构建以下元素：
 
 * 一个用来给用户注册，登录，编辑他们的profile，以及改变或重置密码的认证（authentication）系统
-* 一个允许用户用来关注其他人的关注系统（这里原文是follow，‘跟随’，感觉用‘关注’更加适合点）
+* 一个允许用户来关注其他人的关注系统（这里原文是follow，‘跟随’，感觉用‘关注’更加适合点）
 * 为用户从其他任何网站分享过来的图片进行展示和打上书签
-* 每个用户都有一个活动流允许用户看到他们关注的人上传的内容
+* 每个用户都有一个活动流允许他们看到所关注的人上传的内容
 
 本章主要讲述第一点。
 
@@ -40,7 +40,7 @@ shell提示将会展示你激活的虚拟环境，如下所示：
 
 运行以下命令来创建一个新项目：
 
-    django-admin statproject bookmarks
+    django-admin startproject bookmarks
 
 在创建好一个初始的项目结构以后，使用以下命令进入你的项目目录并且创建一个新的应用命名为*account*:
 
@@ -63,18 +63,18 @@ shell提示将会展示你激活的虚拟环境，如下所示：
 ###使用Django认证（authentication）框架
 Django拥有一个内置的认证（authentication）框架用来操作用户认证（authentication），会话（sessions），权限（permissions）以及用户组。这个认证（authentication）系统包含了一些普通用户的操作视图（views），例如：登录，登出，修改密码以及重置密码。
 
-这个认证（authentication）框架位于*django.contrib.auth*，被其他Django的*contrib*包调用。请记住你使用过这个认证（authentication）框架在*第一章 创建一个Blog应用*中用来为你的blog应用创建了一个超级用户来使用管理站点。
+这个认证（authentication）框架位于*django.contrib.auth*，被其他Django的*contrib*包调用。请记住你在*第一章 创建一个Blog应用*中使用过这个认证（authentication）框架并用来为你的blog应用创建了一个超级用户来使用管理站点。
 
 当你使用*startproject*命令创建一个新的Django项目，认证（authentication）框架已经在你的项目设置中默认包含。它是由*django.contrib.auth*应用和你的项目设置中的*MIDDLEWARE_CLASSES*中的两个中间件类组成，如下：
 
-* AuthenticationMiddlwware:使用会话（sessions）将用户和请求（requests）进行关联
+* AuthenticationMiddleware:使用会话（sessions）将用户和请求（requests）进行关联
 * SessionMiddleware:通过请求（requests）操作当前会话（sessions）
 
-中间件就是一个在请求和响应阶段带有全局执行方法的类。你会在本书中的很多场景中使用到中间件。你将会学习如何创建一个定制的中间件在*第十三章 Going Live（译者注：啥时候能翻译到啊）*。
+中间件就是一个在请求和响应阶段带有全局执行方法的类。你会在本书中的很多场景中使用到中间件。你将会在*第十三章 Going Live*中学习如何创建一个定制的中间件（译者注：啥时候能翻译到啊）。
 
 这个认证（authentication）系统还包含了以下模型（models）：
 
-* User：一个用户模型（model）包含基础字段；这个模型（model）的主要字段有：username,password,email,first_name,last_name,is_active。
+* User：一个包含了基础字段的用户模型（model）；这个模型（model）的主要字段有：username， password, email, first_name, last_name, is_active。
 * Group：一个组模型（model）用来分类用户
 * Permission：执行特定操作的标识
 
@@ -83,25 +83,32 @@ Django拥有一个内置的认证（authentication）框架用来操作用户认
 ###创建一个log-in视图（view）
 我们将要开始使用Django认证（authentication）框架来允许用户登录我们的网站。我们的视图（view）需要执行以下操作来登录用户：
 
-* 1、通过提交的表单（form）获取username和password
-* 2、通过存储在数据库中的数据对用户进行认证
-* 3、检查用户是否可用
-* 4、登录用户到网站中并且开始一个认证（authentication）会话（session）
+<ol>
+	<li>通过提交的表单（form）获取username和password
+	<li>通过存储在数据库中的数据对用户进行认证
+	<li>检查用户是否可用
+	<li>登录用户到网站中并且开始一个认证（authentication）会话（session）
+</ol>
 
 首先，我们要创建一个登录表单（form）。在你的account应用目录下创建一个新的*forms.py*文件，添加如下代码：
 
-    from django import forms    
-    class LoginForm(forms.Form):        
-        username = forms.CharField()        
-        password = forms.CharField(widget=forms.PasswordInput)
+```python
+from django import forms
+	    
+class LoginForm(forms.Form):        
+	username = forms.CharField()        
+	password = forms.CharField(widget=forms.PasswordInput)
+```
 
-这个表单（form）被用来通过数据库认证用户。请注意，我们使用*PsswordInput*控件来渲染HTML`input`元素，包含`type="password`属性。编辑你的*account*应用中的*views.py*文件，添加如下代码：
+这个表单（form）被用来通过数据库认证用户。请注意，我们使用*PasswordInput*控件来渲染HTML`input`元素，包含`type="password"`属性。编辑你的*account*应用中的*views.py*文件，添加如下代码：
 
 ```python
 from django.http import HttpResponse    
 from django.shortcuts import render    
 from django.contrib.auth import authenticate, login    
-from .forms import LoginForm    
+from .forms import LoginForm 
+
+   
 def user_login(request):        
     if request.method == 'POST':            
         form = LoginForm(request.POST)            
@@ -122,20 +129,21 @@ def user_login(request):
     return render(request, 'account/login.html', {'form': form})
 ```
 
-以上就是我们在视图（view）中所作的基本登录操作：当*user_login*被一个GET请求（request）调用，我们实例化一个新的登录表单（form）通过`form = LoginForm()`在模板（template）中展示它。当用户通过POST方法提交表单（form），我们执行以下操作：
+以上就是我们在视图（view）中所作的基本登录操作：当*user_login*被一个GET请求（request）调用，我们实例化一个新的登录表单（form）并通过`form = LoginForm()`在模板（template）中展示它。当用户通过POST方法提交表单（form）时，我们执行以下操作：
 
-* 1、使用提交的数据实例化表单（form）通过使用`form = LoginForm(request.POST)`
-* 2、检查这个表单是否有效。如果无效，我们在模板（template）中展示表单错误信息（举个例如，比如用户没有填写其中一个字段就进行提交）
-* 3、如果提交的数据是有效的，我们通过数据库对这个用户进行认证（authentication）通过使用`authenticate()`方法。这个方法带入一个*username*和一个*password*并且返回一个用户对象如果这个用户成功的进行了认证，或者是*None*。如果用户没有被认证通过，我们返回一个*HttpResponse*展示一条消息。
-* 4、如果这个用户认证（authentication）成功，我们使用`is_active`属性来检查用户是否可用。这是一个Django的*User*模型（model)属性。如果这个用户不可用，我们返回一个*HttpResponse*展示信息。
-* 5、如果用户可用，我们登录这个用户到网站中。我们通过调用`login()`方法集合用户到会话（session）中然后返回一条成功消息。
+1、通过使用`form = LoginForm(request.POST)`使用提交的数据实例化表单（form）
+2、检查这个表单是否有效。如果无效，我们在模板（template）中展示表单错误信息（举个例子，比如用户没有填写其中一个字段就进行提交）
+3、如果提交的数据是有效的，我们使用`authenticate()`方法通过数据库对这个用户进行认证（authentication）。这个方法带入一个*username*和一个*password*，如果这个用户成功的进行了认证则返回一个用户对象，否则是*None*。如果用户没有被认证通过，我们返回一个*HttpResponse*展示一条消息。
+4、如果这个用户认证（authentication）成功，我们使用`is_active`属性来检查用户是否可用。这是一个Django的*User*模型（model)属性。如果这个用户不可用，我们返回一个*HttpResponse*展示信息。
+5、如果用户可用，我们登录这个用户到网站中。我们通过调用`login()`方法集合用户到会话（session）中然后返回一条成功消息。
 
-> 请注意*authentication*和*login*中的不同点：`authenticate()`检查用户认证信息然后返回一个用户对象如果用户是正确的；`login()`集合用户到当前的会话（session）中。
+> 请注意*authentication*和*login*中的不同点：`authenticate()`检查用户认证信息，如果用户是正确的则返回一个用户对象；`login()`将用户设置到当前的会话（session）中。
 
 现在，你需要为这个视图（view）创建一个URL模式。在你的*account*应用目录下创建一个新的*urls.py*文件，添加如下代码：
 
     from django.conf.urls import url    
     from . import views    
+	
     urlpatterns = [        
         # post views        
         url(r'^login/$', views.user_login, name='login'),    
@@ -144,13 +152,14 @@ def user_login(request):
 编辑位于你的*bookmarks*项目目录下的*urls.py*文件，将*account*应用下的URL模式包含进去：
 
     from django.conf.urls import include, url    
-    from django.contrib import admin    
+    from django.contrib import admin
+	    
     urlpatterns = [        
         url(r'^admin/', include(admin.site.urls)),
         url(r'^account/',include('account.urls')),    
     ]
 
-这个登录视图（view）现在已经可以通过URL进行访问。现在是时候为这个视图（view）创建一个模板。因为之前你没有这个项目的任何模板，你可以开始创建一个主模板（template）可以被登录模板（template）继承使用。创建以下文件和结构在*account*应用目录中：
+这个登录视图（view）现在已经可以通过URL进行访问。现在是时候为这个视图（view）创建一个模板。因为之前你没有这个项目的任何模板，你可以开始创建一个主模板（template）能够被登录模板（template）继承使用。在*account*应用目录中创建以下文件和结构：
 
 ```shell
     templates/
@@ -179,9 +188,9 @@ def user_login(request):
         </body>    
     </html>
 
-以上将是这个网站的基础模板（template）。就像我们在上一章项目中做过的一样，我们在这个住模板（template）中包含了CSS样式。你可以在本章的示例代码中找到这些静态文件。复制示例代码中的*account*应用下的*static/*目录到你的项目中的相同位置，这样你就可以使用这些静态文件了。
+以上将是这个网站的基础模板（template）。就像我们在上一章项目中做过的一样，我们在这个主模板（template）中包含了CSS样式。你可以在本章的示例代码中找到这些静态文件。复制示例代码中的*account*应用下的*static/*目录到你的项目中的相同位置，这样你就可以使用这些静态文件了。
 
-基础模板（template）定义了一个*title*和一个*content*区块可以被继承的子模板（template）填充内容。
+基础模板（template）定义了一个*title*和一个*content*区块可以让被继承的子模板（template）填充内容。
 
 让我们为我们的登录表单（form）创建模板（template）。打开*account/login.html*模板（template）添加如下代码：
 
@@ -197,28 +206,28 @@ def user_login(request):
         </form>
     {% endblock %}
     
-这个模板（template）包含了视图（view）中实例化的表单（form）。因为我们的表单（form）将会通过POST方式进行提交，所以我们包含了`{% csrf_token %}`模板（template）标签(tag)用来通过CSRF保护。你已经学习过CSRF保护在*第二章 使用高级特性扩展你的博客应用*。
+这个模板（template）包含了视图（view）中实例化的表单（form）。因为我们的表单（form）将会通过POST方式进行提交，所以我们包含了`{% csrf_token %}`模板（template）标签(tag)用来通过CSRF保护。你已经在*第二章 使用高级特性扩展你的博客应用*中学习过CSRF保护。
 
-目前还没有用户在你的数据库中。你首先需要创建一个超级用户用来登录管理站点来管理其他的用户。打开命令行执行`python manage.py createsuperuser`。填写username,e-mail以及password。之后通过命令`python manage.py runserver`运行开发环境，然后在你的浏览器中打开 http://127.0.0.1:8000/admin/ 。使用你刚才创建的username和passowrd来进入管理站点。你会看到Django管理站点包含Django认证（authentication）框架中的*User*和*Group*模型（models）。如下所示：
+目前还没有用户在你的数据库中。你首先需要创建一个超级用户用来登录管理站点来管理其他的用户。打开命令行执行`python manage.py createsuperuser`。填写username, e-mail以及password。之后通过命令`python manage.py runserver`运行开发环境，然后在你的浏览器中打开 http://127.0.0.1:8000/admin/ 。使用你刚才创建的username和passowrd来进入管理站点。你会看到Django管理站点包含Django认证（authentication）框架中的*User*和*Group*模型（models）。如下所示：
 
-![django-4-1](http://ohqrvqrlb.bkt.clouddn.com/django-4-1.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-1.png)
 
 使用管理站点创建一个新的用户然后打开 http://127.0.0.1:8000/account/login/ 。你会看到被渲染过的模板（template），包含一个登录表单（form）：
 
-![django-4-2](http://ohqrvqrlb.bkt.clouddn.com/django-4-2.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-2.png)
 
 现在，只填写一个字段保持另外一个字段为空进行表单（from）提交。在这例子中，你会看到这个表单（form）是无效的并且显示了一个错误信息：
 
-![django-4-3](http://ohqrvqrlb.bkt.clouddn.com/django-4-3.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-3.png)
 
 如果你输入了一个不存在的用户或者一个错误的密码，你会得到一个**Invalid login**信息。
 
 如果你输入了有效的认证信息，你会得到一个**Authenticated successfully**消息：
 
-![django-4-4](http://ohqrvqrlb.bkt.clouddn.com/django-4-4.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-4.png)
 
 ###使用Django认证（authentication）视图（views）
-Django包含了一些表单（forms）和视图（views）在认证（authentication）框架中让你可以立刻(straightaway)使用。你之前创建的登录视图（view）是一个非常的练习用来理解Django中的用户认证（authentication）过程。无论如何，你可以使用默认的Django认证（authentication）视图（views）在大部分的例子中。
+Django在认证（authentication）框架中包含了一些开箱即用的表单（forms）和视图（views）。你之前创建的登录视图（view）是一个非常好的练习用来理解Django中的用户认证（authentication）过程。无论如何，你可以在大部分的案例中使用默认的Django认证（authentication）视图（views）。
 
 Django提供以下视图（views）来处理认证（authentication）：
 
@@ -237,7 +246,7 @@ Django还包含了以下视图（views）允许用户重置他们的密码：
 * password_reset_done:告知用户已经发送了一封可以用来重置密码的邮件到他的邮箱中。
 * password_reset_complete:当用户重置完成他的密码后提供一个成功提示页面。
 
-以上的视图（views）可以帮你节省很多时间当你创建一个带有用户账号的网站。这些视图（views）使用的默认值你可以进行覆盖，例如需要渲染的模板位置或者视图（view）需要使用到的表单（form）。
+当你创建一个带有用户账号的网站时，以上的视图（views）可以帮你节省很多时间。你可以覆盖这些视图（views）使用的默认值，例如需要渲染的模板位置或者视图（view）需要使用到的表单（form）。
 
 你可以通过访问 https://docs.
 djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views 获取更多内置的认证（authentication）视图（views）信息。
@@ -265,6 +274,52 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
     
 我们将之前创建的*user_login*视图（view）URL模式进行注释，然后使用Django认证（authentication）框架提供的*login*视图（view）。
 
+【译者注】如果使用Django 1.10以上版本，urls.py 需要改写为以下方式(参见源书提供的源代码):
+
+	from django.conf.urls import url
+	from django.contrib.auth.views import login
+	# With django 1.10 I need to pass the callable instead of 
+	# url(r'^login/$', 'django.contrib.auth.views.login', name='login')
+
+	from django.contrib.auth.views import logout
+	from django.contrib.auth.views import logout_then_login
+	from django.contrib.auth.views import password_change
+	from django.contrib.auth.views import password_change_done
+	from django.contrib.auth.views import password_reset
+	from django.contrib.auth.views import password_reset_done
+	from django.contrib.auth.views import password_reset_confirm
+	from django.contrib.auth.views import password_reset_complete
+	from . import views
+
+	urlpatterns = [
+        # post views
+        # url(r'^login/$', views.user_login, name='login'),
+        
+        # login logout
+        url(r'^login/$', login, name='login'),
+        url(r'^logout/$', logout, name='logout'),
+        url(r'^logout-then-login/$', logout_then_login, name='logout_then_login'),
+        # change password
+        url(r'^password-change/$', password_change, name='password_change'),
+        url(r'^password-change/done/$', password_change_done, name='password_change_done'),
+        # reset password
+        ## restore password urls
+        url(r'^password-reset/$',
+        	password_reset,
+			name='password_reset'),
+        url(r'^password-reset/done/$',
+			password_reset_done,
+			name='password_reset_done'),
+        url(r'^password-reset/confirm/(?P<uidb64>[-\w]+)/(?P<token>[-\w]+)/$',
+			password_reset_confirm,
+			name='password_reset_confirm'),
+        url(r'^password-reset/complete/$',
+			password_reset_complete,
+			name='password_reset_complete'),
+        ]
+
+
+
 在你的account应用中的template目录下创建一个新的目录命名为*registration*。这个路径是Django认证（authentication）视图（view）期望你的认证（authentication）模块（template）默认的存放路径。在这个新目录中创建一个新的文件，命名为*login.html*，然后添加如下代码：
 
     {% extends "base.html" %}
@@ -289,7 +344,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
       </div>
      {% endblock %}
 
-这个登录模板（template）和我们之前创建的基本类似。Django默认使用位于*django.contrib.auth.forms*中的*AuthenticationForm*。这个表单（form）会尝试对用户进行认证如果登录不成功就会抛出一个验证错误。在这个例子中，我们可以在模板（template）中使用`{% if form.errors %}`来找到错误如果用户提供了错误的认证信息。请注意，我们添加了一个隐藏的HTML`<input>`元素来提交叫做*next*的变量值。这个变量是登录视图（view）的首个设置当你在请求（request）中传递一个*next*参数（举个例子：http://127.0.0.1:8000/account/login/?next=/account/）。
+这个登录模板（template）和我们之前创建的基本类似。Django默认使用位于*django.contrib.auth.forms*中的*AuthenticationForm*。这个表单（form）会尝试对用户进行认证，如果登录不成功就会抛出一个验证错误。在这个例子中，如果用户提供了错误的认证信息，我们可以在模板（template）中使用`{% if form.errors %}`来找到错误。请注意，我们添加了一个隐藏的HTML`<input>`元素来提交叫做*next*的变量值。当你在请求（request）中传递一个*next*参数（举个例子：http://127.0.0.1:8000/account/login/?next=/account/），这个变量是登录视图（view）首个设置的参数。
 
 *next*参数必须是一个URL。当这个参数被给予的时候，Django登录视图（view）将会在用户登录完成后重定向到给予的URL。
 
@@ -302,13 +357,13 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
       <p>You have been successfully logged out. You can <a href="{% url "login" %}">log-in again</a>.</p>
     {% endblock %}
     
-这个模板（template）Django会在用户登出的时候进行展示。
+Django会在用户登出的时候展示这个模板（template）。
 
 在添加了URL模式以及登录和登出视图（view）的模板之后，你的网站已经准备好让用户使用Django认证（authentication）视图进行登录。
 
-> 请注意，在我们的地址配置中包含的*logtou_then_login*视图（view）不需要任何模板（template），因为它执行了一个重定向到登录视图（view）。
+> 请注意，在我们的地址配置中所包含的*logtou_then_login*视图（view）不需要任何模板（template），因为它执行了一个重定向到登录视图（view）。
 
-现在，我们要创建一个新的视图（view）来显示一个dashboard给用户当他或她登录他们的账号。打开你的*account*应用中的*views.py*文件，添加以下代码：
+现在，我们要创建一个新的视图（view）给用户，在他或她登录他们的账号后来显示一个dashboard。打开你的*account*应用中的*views.py*文件，添加以下代码：
 
     from django.contrib.auth.decorators import login_required
     @login_required
@@ -317,7 +372,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
                      'account/dashboard.html',
                      {'section': 'dashboard'})
 
-我们使用认证（authentication）框架的*login_required*装饰器（decorator）装饰我们的视图（view）。*login_required*装饰器（decorator）会检查当前用户是否通过认证,如果用户通过认证，它会执行装饰的视图（view），如果用户没有通过认证，它会把用户重定向到带有一个名为*next*的GET参数的登录URL，该GET参数保存的变量为用户当前尝试访问的页面URL。通过这些动作，登录视图（view）会将登录成功的用户重定向到用户登录之前尝试访问过的URL。请记住我们在登录模板（template）中的登录表单（form）中添加的隐藏`<input>`就是为了这个目的。
+我们使用认证（authentication）框架的*login_required*装饰器（decorator）装饰我们的视图（view）。*login_required*装饰器（decorator）会检查当前用户是否通过认证，如果用户通过认证，它会执行装饰的视图（view），如果用户没有通过认证，它会把用户重定向到带有一个名为*next*的GET参数的登录URL，该GET参数保存的变量为用户当前尝试访问的页面URL。通过这些动作，登录视图（view）会将登录成功的用户重定向到用户登录之前尝试访问过的URL。请记住我们在登录模板（template）中的登录表单（form）中添加的隐藏`<input>`就是为了这个目的。
 
 我们还定义了一个*section*变量。我们会使用该变量来跟踪用户在站点中正在查看的页面。多个视图（views）可能会对应相同的section。这是一个简单的方法用来定义每个视图（view）对应的section。
 
@@ -350,7 +405,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
 * LOGIN_URL：重定向用户登录的URL（例如：使用*login_required*装饰器（decorator））。
 * LOGOUT_URL：重定向用户登出的URL。
 
-我们使用*reverse_laze()*来动态构建URL通过它们的名字。*reverse_laze()*方法reverses URLs就像*reverse()*所做的一样，但是你可以使用它当你需要reverse URLs在你项目的URL配置读取之前。
+我们使用*reverse_lazy()*来通过它们的名字动态构建URL。*reverse_lazy()*方法就像*reverse()*所做的一样reverses URLs，但是你可以通过使用这种方式在你项目的URL配置被读取之前进行reverse URLs。
 
 让我们总结下目前为止我们都做了哪些工作：
 
@@ -360,7 +415,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
 
 现在，我们要给我们的主模板（template）添加登录和登出链接将所有的一切都连接起来。
 
-为了做到这点，我们必须确定无论用户是已登录状态还是没有登录的时候，都会显示适当的链接。通过认证（authentication）中间件当前的用户被集合在HTTP请求（request)对象中。你可以访问用户信息通过使用`request.user`。你会防线一个用户对象在请求（request)中，即使这个用户并没有认证通过。一个非认证的用户在请求（request）被设置成一个*AnonymousUser*的实例。一个最好的方法来检查当前的用户是否通过认证是通过调用`request.user.is_authenticated()`。
+为了做到这点，我们必须确定无论用户是已登录状态还是没有登录的时候，都会显示适当的链接。通过认证（authentication）中间件当前的用户被设置在HTTP请求（request)对象中。你可以通过使用`request.user`访问用户信息。你会发现一个用户对象在请求（request)中，即便这个用户并没有认证通过。一个未认证的用户在请求（request）中被设置成一个*AnonymousUser*的实例。一个最好的方法来检查当前的用户是否通过认证是通过调用`request.user.is_authenticated()`。
 
 编辑你的*base.html*文件修改ID为*header*的`<div>`元素，如下所示：
 
@@ -381,7 +436,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
          {% endif %}
          <span class="user">
            {% if request.user.is_authenticated %}
-             Hello {{ request.user.username }},
+             Hello {{ request.user.first_name }},
              <a href="{% url "logout" %}">Logout</a>
            {% else %}
              <a href="{% url "login" %}">Log-in</a>
@@ -389,19 +444,19 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
         </span>
     </div>
     
-就像你所看到的，我们只给通过认证（authentication）的用户显示站点菜单。我们还检查当前的section来给对应的`<li>`组件添加一个*selected*的class属性来使当前section在菜单中进行高亮显示通过使用CSS。我们还显示用户的第一个名字和一个登出的链接如果用户已经通过认证（authentication），否则，就是一个登出链接。
+就像你所看到的，我们只给通过认证（authentication）的用户显示站点菜单。我们还检查当前的section并通过使用CSS来给对应的`<li>`组件添加一个*selected*的class属性来使当前section在菜单中进行高亮显示。如果用户已经通过认证（authentication），我们还显示用户的名字（first_name)和一个登出的链接，否则，就是一个登出链接。
 
 现在，在浏览器中打开 http://127.0.0.1:8000/account/login/ 。你会看到登录页面。输入可用的用户名和密码然后点击**Log-in**按钮。你会看到如下图所示：
 
-![django-4-5](http://ohqrvqrlb.bkt.clouddn.com/django-4-5.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-5.png)
     
-你能看到*My Dashboard* section 通过CSS的作用高亮显示因为它拥有一个*selected* class。因为当前用户已经通过了认证（authentication）所有用户的第一个名字在右上角进行了显示。点击**Logout**链接。你会看到如下图所示：
+你能看到通过CSS的作用 *My Dashboard* section 因为拥有一个 *selected* class 而高亮显示。因为当前用户已经通过了认证（authentication），所以用户的名字在右上角进行了显示。点击**Logout**链接。你会看到如下图所示：
 
-![django-4-6](http://ohqrvqrlb.bkt.clouddn.com/django-4-6.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-6.png)
 
 在这个页面中，你能看到用户已经登出，然后，你无法看到当前网站的任何菜单。在右上角现在显示的是**Log-in**链接。
 
-如果你在你的登出页面中看到了Django管理站点的登出页面，检查项目*settings.py*中的*INSTALLED_APPS*,确保*django.contrib.admin*在*account*应用的后面。每个模板（template）被定位在同样的相对路径时，Django模板（template）读取器将会使用它找到的第一个应用中的模板（templates）。
+如果在你的登出页面中看到了Django管理站点的登出页面，检查项目*settings.py*中的*INSTALLED_APPS*,确保*django.contrib.admin*在*account*应用的后面。每个模板（template）被定位在同样的相对路径时，Django模板（template）读取器将会使用它找到的第一个应用中的模板（templates）。
 
 ###修改密码视图（views）
 我们还需要我们的用户在登录成功后可以进行修改密码。我们要集成Django认证（authentication）视图（views）来修改密码。打开*account*应用中的*urls.py*文件，添加如下URL模式：
@@ -414,7 +469,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
        'django.contrib.auth.views.password_change_done',
        name='password_change_done'),
 
-*password_change*视图（view）将会操作表单（form）进行修改密码，*password_change_done*将会显示一条成功信息当用户成功的修改他的密码。让我们为每个视图（view）创建一个模板（template）。
+*password_change* 视图（view）将会操作表单（form）进行修改密码，当用户成功的修改他的密码后 *password_change_done* 将会显示一条成功信息。让我们为每个视图（view）创建一个模板（template）。
 
 在你的*account*应用*templates/registration/*目录下添加一个新的文件命名为*password_form.html*，在文件中添加如下代码：
 
@@ -443,11 +498,11 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
 
 在浏览器中打开 http://127.0.0.1:8000/account/password-change/ 。如果你的用户没有登录，浏览器会重定向你到登录页面。在你成功认证（authentication）登录后，你会看到如下图所示的修改密码页面：
 
-![django-4-7](http://ohqrvqrlb.bkt.clouddn.com/django-4-7.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-7.png)
 
 在表单（form）中填写你的旧密码和新密码，然后点击**Change**按钮。你会看到如下所示的成功页面：
 
-![django-4-8](http://ohqrvqrlb.bkt.clouddn.com/django-4-8.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-8.png)
 
 登出再使用新的密码进行登录来验证每件事是否如预期一样工作。
 
@@ -490,7 +545,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
     
 这个模板（template）会被用来渲染发送给用户的重置密码邮件。
 
-在相同目录下添加另一个文件命名为*password_reset_done.html，为它添加如下代码：
+在相同目录下添加另一个文件命名为*password_reset_done.html*，为它添加如下代码：
 
     {% extends "base.html" %}
     {% block title %}Reset your password{% endblock %}
@@ -518,7 +573,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
       {% endif %}
     {% endblock %}
     
-在以上模板中，如果重置链接是有效的我们将会进行检查。Django重置密码视图（view）会设置这个变量然后将它带入这个模板（template）的上下文环境中。如果重置链接有效，我们展示用户密码重置表单（form）。
+在以上模板中，我们将会检查重置链接是否有效。Django重置密码视图（view）会设置这个变量然后将它带入这个模板（template）的上下文环境中。如果重置链接有效，我们展示用户密码重置表单（form）。
 
 创建另一个模板（template）命名为*password_reset_complete.html*，为它添加如下代码：
 
@@ -535,9 +590,9 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
     
 现在，在浏览器中打开 http://127.0.0.1:8000/account/login/ 然后点击**Forgotten your password?**链接。你会看到如下图所示页面：
 
-![django-4-9](http://ohqrvqrlb.bkt.clouddn.com/django-4-9.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-9.png)
 
-在这部分，你需要在你项目中的*settings.py*中添加一个SMTP配置，这样Django才能发送e-mails。我们已经学习过如何添加e-mail配置在*第二章 使用高级特性来优化你的blog*。当然，在开发期间，我们可以配置Django在标准输出中输出e-mail内容来代替通过SMTP服务发送邮件。Django提供一个e-mail后端来输出e-mail内容到控制器中。编辑项目中*settings.py*文件，添加如下代码：
+在这部分，你需要在你项目中的*settings.py*中添加一个SMTP配置，这样Django才能发送e-mails。我们已经在*第二章 使用高级特性来优化你的blog*学习过如何添加e-mail配置。当然，在开发期间，我们可以配置Django在标准输出中输出e-mail内容来代替通过SMTP服务发送邮件。Django提供一个e-mail后端来输出e-mail内容到控制器中。编辑项目中*settings.py*文件，添加如下代码：
 
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
     
@@ -545,7 +600,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
 
 回到你的浏览器中，填写一个存在用户的e-mail地址，然后点击**Send e-mail**按钮。你会看到如下图所示页面：
 
-![django-4-10](http://ohqrvqrlb.bkt.clouddn.com/django-4-10.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-10.png)
 
 当你运行开发服务的时候看眼控制台输出。你会看到如下所示生成的e-mail：
 
@@ -563,15 +618,15 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
 
 这封e-mail被我们之前创建的*password_reset_email.html*模板给渲染。这个给你重置密码的URL带有一个Django动态生成的token。在浏览器中打开这个链接，你会看到如下所示页面：
 
-![django-4-11](http://ohqrvqrlb.bkt.clouddn.com/django-4-11.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-11.png)
 
-这个页面用来设置新密码对应*password_reset_confirm.html*模板（template）。填写新的密码然后点击**Change my password button**。Django会创建一个新的加密后密码保存进数据库，你会看到如下图所示页面：
+这个页面对应*password_reset_confirm.html*模板（template）用来设置新密码。填写新的密码然后点击**Change my password button**。Django会创建一个新的加密后密码保存进数据库，你会看到如下图所示页面：
 
-![django-4-12](http://ohqrvqrlb.bkt.clouddn.com/django-4-12.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-12.png)
 
 现在你可以使用你的新密码登录你的账号。每个用来设置新密码的token只能使用一次。如果你再次打开你之前获取的链接，你会得到一条信息告诉你这个token已经无效了。
 
-你在项目中集成了Django认证（authentication）框架的视图（views）。这些视图（views）对大部分的例子都适合。当然，你能创建你的自己视图如果你需要一种不同的行为。
+你在项目中集成了Django认证（authentication）框架的视图（views）。这些视图（views）对大部分的情况都适合。当然，如果你需要一种不同的行为你能创建你自己的视图。
 
 ##用户注册和用户profiles
 现有的用户已经可以登录，登出，修改他们的密码，以及当他们忘记密码的时候重置他们的密码。现在，我们需要构建一个视图（view）允许访问者创建他们的账号。
@@ -594,7 +649,7 @@ djangoproject.com/en/1.8/topics/auth/default/#module-django.contrib.auth.views �
                 raise forms.ValidationError('Passwords don\'t match.')
             return cd['password2']
             
-我们为*User*模型（model）创建了一个model表单（form）。在我们的表单（form）中我们只包含了模型（model）中的*username,first_name,email*字段。这些字段会在它们对应的模型（model）字段上进行验证。例如：如果用户选择了一个已经存在的用户名，将会得到一个验证错误。我们还添加了两个额外的字段*password*和*password2*给用户用来填写他们的新密码和确定密码。我们定义了一个`clean_password2()`方法去检查第二次输入的密码是否和第一次输入的保持一致，如果不一致这个表单将会是无效的。这个检查会被执行当我们验证这个表单（form）通过调用它的`is_valid()`方法。你可以提供一个`clean_<fieldname>()`方法给任何一个你的表单（form）字段用来清理值或者抛出表单（from）指定的字段的验证错误。表单（forms）还包含了一个`clean()`方法用来验证表单（form）的所有内容，这是非常有用的用来验证需要依赖其他字段的字段。
+我们为*User*模型（model）创建了一个model表单（form）。在我们的表单（form）中我们只包含了模型（model）中的*username,first_name,email*字段。这些字段会在它们对应的模型（model）字段上进行验证。例如：如果用户选择了一个已经存在的用户名，将会得到一个验证错误。我们还添加了两个额外的字段*password*和*password2*给用户用来填写他们的新密码和确定密码。我们定义了一个`clean_password2()`方法去检查第二次输入的密码是否和第一次输入的保持一致，如果不一致这个表单将会是无效的。当我们通过调用`is_valid()`方法验证这个表单（form）时这个检查会被执行。你可以提供一个`clean_<fieldname>()`方法给任何一个你的表单（form）字段用来清理值或者抛出表单（from）指定的字段的验证错误。表单（forms）还包含了一个`clean()`方法用来验证表单（form）的所有内容，这对验证需要依赖其他字段的字段是非常有用的。
 
 Django还提供一个*UserCreationForm*表单（form）给你使用，它位于*django.contrib.auth.forms*非常类似与我们刚才创建的表单（form）。
 
@@ -652,11 +707,11 @@ Django还提供一个*UserCreationForm*表单（form）给你使用，它位于*
     
 现在，在浏览器中打开 http://127.0.0.1:8000/account/register/ 。你会看到你创建的注册页面：
 
-![django-4-13](http://ohqrvqrlb.bkt.clouddn.com/django-4-13.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-13.png)
 
 填写用户信息然后点击**Create my account**按钮。如果所有的字段都验证都过，这个用户将会被创建然后会得到一条成功信息，如下所示：
 
-![django-4-14](http://ohqrvqrlb.bkt.clouddn.com/django-4-14.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-14.png)
 
 点击**log-in**链接输入你的用户名和密码来验证账号是否成功创建。
 
@@ -677,14 +732,17 @@ Django还提供一个*UserCreationForm*表单（form）给你使用，它位于*
 
     from django.db import models
     from django.conf import settings
+	
+	
     class Profile(models.Model):
         user = models.OneToOneField(settings.AUTH_USER_MODEL)
         date_of_birth = models.DateField(blank=True, null=True)
         photo = models.ImageField(upload_to='users/%Y/%m/%d', blank=True)
-    def __str__(self):
-        return 'Profile for user {}'.format(self.user.username)
+    	
+		def __str__(self):
+        	return 'Profile for user {}'.format(self.user.username)
 
-> 为了保持你的代码通用化，使用`get_user_model()`方法来取回用户模型（model），当定义了模型（model）和用户模型的关系使用*AUTH_USER_MODEL*设置来引用它，替代直接引用auth的*User*模型（model)。
+> 为了保持你的代码通用化，当需要定义模型（model）和用户模型的关系时，使用`get_user_model()`方法来取回用户模型（model）并使用*AUTH_USER_MODEL*设置来引用这个用户模型，替代直接引用auth的*User*模型（model)。
 
 *user*一对一字段允许我们关联用户和profiles。*photo*字段是一个*ImageField*字段。你需要安装一个Python包来管理图片，使用**PIL(Python Imaging Library)**或者**Pillow**（PIL的分叉）,在shell中运行一下命令来安装*Pillow*：
 
@@ -703,10 +761,13 @@ MEDIA_URL 是管理用户上传的多媒体文件的主URL，MEDIA_ROOT是这些
     from django.contrib import admin
     from django.conf import settings
     from django.conf.urls.static import static
+	
+	
     urlpatterns = [
         url(r'^admin/', include(admin.site.urls)),
         url(r'^account/', include('account.urls')),
     ]
+	
     if settings.DEBUG:
         urlpatterns += static(settings.MEDIA_URL,
                             document_root=settings.MEDIA_ROOT)
@@ -741,17 +802,19 @@ MEDIA_URL 是管理用户上传的多媒体文件的主URL，MEDIA_ROOT是这些
         list_display = ['user', 'date_of_birth', 'photo']
     admin.site.register(Profile, ProfileAdmin)
     
-使用`python manage.py runnserver*命令重新运行开发服务。现在，你可以看到*Profile*模型已经存在你项目中的管理站点中，如下所示：
+使用`python manage.py runnserver`命令重新运行开发服务。现在，你可以看到*Profile*模型已经存在你项目中的管理站点中，如下所示：
 
-![django-4-15](http://ohqrvqrlb.bkt.clouddn.com/django-4-15.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-15.png)
 
 现在，我们要让用户可以在网站编辑它们的*profile*。添加如下的模型（model）表单（forms）到*account*应用中的*forms.py*文件：
 
     from .models import Profile
+	
     class UserEditForm(forms.ModelForm):
         class Meta:
             model = User
             fields = ('first_name', 'last_name', 'email')
+			
     class ProfileEditForm(forms.ModelForm):
         class Meta:
             model = Profile
@@ -759,8 +822,8 @@ MEDIA_URL 是管理用户上传的多媒体文件的主URL，MEDIA_ROOT是这些
 
 这两个表单（forms）的功能：
 
-* UserEditForm：允许用户编辑它们的*first name,last name, e-mail*,这些储存在*User*模型（model）中的内置字段。
-* ProfileEditForm：允许用户编辑我们存储在定制的*Profile*模型（model）中的额外数据。用户可以编辑它们的生日数据以及为他们的*profile*上传一张图片。
+* UserEditForm：允许用户编辑它们的*first name,last name, e-mail* 这些储存在*User*模型（model）中的内置字段。
+* ProfileEditForm：允许用户编辑我们存储在定制的*Profile*模型（model）中的额外数据。用户可以编辑他们的生日数据以及为他们的*profile*上传一张照片。
 
 编辑*account*应用中的*view.py*文件，导入*Profile*模型（model），如下所示：
 
@@ -771,9 +834,9 @@ MEDIA_URL 是管理用户上传的多媒体文件的主URL，MEDIA_ROOT是这些
     # Create the user profile
     profile = Profile.objects.create(user=new_user)
     
-当用户在我们的站点中注册，我们会创建一个对应的空的*profile*给他们。你需要为之前创建的用户们一个个手动创建一个*Profile*对象在管理站点中。
+当用户在我们的站点中注册，我们会创建一个对应的空的*profile*给他们。你需要在管理站点中为之前创建的用户们一个个手动创建对应的*Profile*对象。
 
-现在，我们要让用于能够编辑他们的*pfofile*。添加如下代码到相同文件中：
+现在，我们要让用户能够编辑他们的*pfofile*。添加如下代码到相同文件中：
 
     from .forms import LoginForm, UserRegistrationForm, \
     UserEditForm, ProfileEditForm
@@ -796,7 +859,7 @@ MEDIA_URL 是管理用户上传的多媒体文件的主URL，MEDIA_ROOT是这些
                      {'user_form': user_form,
                      'profile_form': profile_form})
 
-我们使用*login_required*装饰器*decorator*是因为用户编辑他们的*profile*必须是认证通过的状态。在这个例子中，我们使用两个模型（model）表单（forms）：*UserEditForm*用来存储数据到内置的*User*模型（model）中，*ProfileEditForm*用来存储额外的*profile*数据。为了验证提交的数据，我们检查每个表单（forms）通过`is_valid()`方法是否都返回*True*。在这个例子中，我们保存两个表单（form）来更新数据库中对应的对象。
+我们使用*login_required*装饰器*decorator*是因为用户编辑他们的*profile*必须是认证通过的状态。在这个例子中，我们使用两个模型（model）表单（forms）：*UserEditForm*用来存储数据到内置的*User*模型（model）中，*ProfileEditForm*用来存储额外的*profile*数据。为了验证提交的数据，通过`is_valid()`方法是否都返回*True*我们来检查每个表单（forms）。在这个例子中，我们保存两个表单（form）来更新数据库中对应的对象。
 
 在*account*应用中的*urls.py*文件中添加如下URL模式：
 
@@ -817,11 +880,11 @@ MEDIA_URL 是管理用户上传的多媒体文件的主URL，MEDIA_ROOT是这些
         </form>
     {% endblock %}
 
-> 我们在表单（form）中包含`enctype="multipart/form-data"`用来支持文件上传。我们使用一个HTML表单来提交两个*user_form*和*profile_form*表单（forms）。
+> 我们在表单（form）中包含`enctype="multipart/form-data"`用来支持文件上传。我们使用一个HTML表单来提交两个表单（forms）: *user_form*和*profile_form*。
 
 注册一个新用户然后打开 http://127.0.0.1:8000/account/edit/。你会看到如下所示页面：
 
-![django-4-16](http://ohqrvqrlb.bkt.clouddn.com/django-4-16.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-16.png)
 
 现在，你可以编辑dashboard页面包含编辑*profile*的页面链接和修改密码的页面链接。打开*account/dashboard.html*模板（model）替换如下代码：
 
@@ -829,7 +892,9 @@ MEDIA_URL 是管理用户上传的多媒体文件的主URL，MEDIA_ROOT是这些
 
 为：
 
-    <p>Welcome to your dashboard. You can <a href="{% url "edit" %}">edit your profile</a> or <a href="{% url "password_change" %}">change your password</a>.</p>
+    <p>Welcome to your dashboard. 
+	You can <a href="{% url "edit" %}">edit your profile</a> 
+	or <a href="{% url "password_change" %}">change your password</a>.</p>
     
 用户现在可以从他们的dashboard访问编辑他们的*profile*的表单。
 
@@ -839,12 +904,12 @@ Django还提供一个方法可以使用你自己定制的模型（model）来替
 使用一个定制的用户模型（model）将会带给你很多的灵活性，但是它也可能给一些需要与*User*模型（model）交互的即插即用的应用集成带来一定的困难。
 
 ##使用messages框架
-当处理用户的操作时，你可能想要通知你的用户关于他们操作的结果。Django有一个内置的messages框架允许你给你的用户显示一次性的提示。messages框架位于*django.contrib.messages*，当你使用`python manage.py startproject`命令创建一个新项目的时候，messages框架就被默认包含在*settings.py*文件中的*INSTALLED_APPS*中。你会注意到你的设置文件包含了一个名为*django.contrib.messages.middleware.MessageMiddleware*的中间件在*MIDDLEWARE_CLASSES*设置中。messages框架提供了一个简单的方法添加消息给用户。消息被存储在数据库中并且会在用户的下一次请求中展示。你可以在你的视图（views）中导入*messages*模块使用消息messages框架，用简单的快捷方式添加新的messages，如下所示：
+当处理用户的操作时，你可能想要通知你的用户关于他们操作的结果。Django有一个内置的messages框架允许你给你的用户显示一次性的提示。messages框架位于*django.contrib.messages*，当你使用`python manage.py startproject`命令创建一个新项目的时候，messages框架就被默认包含在*settings.py*文件中的*INSTALLED_APPS*中。你会注意到你的设置文件中在*MIDDLEWARE_CLASSES*设置里包含了一个名为*django.contrib.messages.middleware.MessageMiddleware*的中间件。messages框架提供了一个简单的方法添加消息给用户。消息被存储在数据库中并且会在用户的下一次请求中展示。你可以在你的视图（views）中导入*messages*模块来使用消息messages框架，用简单的快捷方式添加新的messages，如下所示：
 
     from django.contrib import messages
     messages.error(request, 'Something went wrong')
 
-你可以使用`add_message()`方法创建新的messages或用下方任意一个快捷方法：
+你可以使用`add_message()`方法创建新的messages或用以下任意一个快捷方法：
 
 * success()：当操作成功后显示成功的messages
 * info()：展示messages
@@ -852,7 +917,7 @@ Django还提供一个方法可以使用你自己定制的模型（model）来替
 * error()：操作没有成功或者某些事情失败
 * debug()：在生产环境中这种messages会移除或者忽略
 
-让我们显示messages给用户。因为messages框架是被项目全局应用，我们可以在主模板（template）诶用户展示messages。打开*base.html*模板（template）在id为*header*的`<div>`和id为*content*的`<div>`之间添加如下内容：
+让我们显示messages给用户。因为messages框架是被项目全局应用，我们可以在主模板（template）给用户展示messages。打开*base.html*模板（template）在id为*header*的`<div>`和id为*content*的`<div>`之间添加如下内容：
 
     {% if messages %}
      <ul class="messages">
@@ -889,33 +954,34 @@ messages框架带有一个上下文环境（context）处理器用来添加一�
 
 在浏览器中打开 http://127.0.0.1:8000/account/edit/ 编辑你的profile。当profile更新成功，你会看到如下message：
 
-![django-4-17](http://ohqrvqrlb.bkt.clouddn.com/django-4-17.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-17.png)
 
 当表单（form）是无效的，你会看到如下message：
 
-![django-4-18](http://ohqrvqrlb.bkt.clouddn.com/django-4-18.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-18.png)
 
 ##创建一个定制的认证（authentication）后台
-Django允许你通过不同的来源进行认证（authentication）。*AUTHENTICATION_BACKENDS*设置包含了所有的认证（authentication）后台给你的项目。默认的，这个设置如下所示：
+Django允许你通过不同的来源进行认证（authentication）。*AUTHENTICATION_BACKENDS*设置包含了所有的给你的项目的认证（authentication）后台。默认的，这个设置如下所示：
 
     ('django.contrib.auth.backends.ModelBackend',)
     
-这个默认的*ModelBackend*认证（authentication）用户通过数据库使用的是*django.contrib.auth*中的*User*模型（model）。这适用于你的大部分项目。当然，你还可以创建定制的后台用来认证你的用户通过其他的来源例如一个*LDAP*目录或者其他任何系统。
+默认的*ModelBackend*通过数据库使用*django.contrib.auth*中的*User*模型（model）来认证（authentication）用户。这适用于你的大部分项目。当然，你还可以创建定制的后台通过其他的来源例如一个*LDAP*目录或者其他任何系统来认证你的用户。
 
 你可以通过访问 https://docs.djangoproject.com/en/1.8/topics/auth/customizing/#other-authentication-sources 获得更多的信息关于自定义的认证（authentication）。
 
-当你使用*django.contrib.auth*的*authenticate()*函数，Django会尝试认证（authentication）用户一个接一个通过每一个定义在*AUTHENTICATION_BACKENDS*中的后台，直到其中有一个后台成功的认证该用户才会停止进行认证。只有所有的后台都无法进行用户认证（authentication），他或她才不会在你的站点中认证（authentication）通过。
+当你使用*django.contrib.auth*的*authenticate()*函数，Django会通过每一个定义在*AUTHENTICATION_BACKENDS*中的后台一个接一个地尝试认证（authentication）用户，直到其中有一个后台成功的认证该用户才会停止进行认证。只有所有的后台都无法进行用户认证（authentication），他或她才不会在你的站点中通过认证（authentication）。
 
-Django提供了一个简单的方法来定义你自己的认证（authentication）后台。一个认证（authentication）后台就是一个类提供了如下两种方法：
+Django提供了一个简单的方法来定义你自己的认证（authentication）后台。一个认证（authentication）后台就是提供了如下两种方法的一个类：
 
 * authenticate()：将用户信息当成参数，如果用户成功的认证（authentication）就需要返回*True*，反之，需要返回*False*。
 * get_user()：将用户的ID当成参数然后需要返回一个用户对象。
 
-创建一个定制认证（authentication）后台非常容易就是编写一个Python类实现上面两个方法。我们要创建一个认证（authentication）后台让用户在我们的站点中使用他们e-mail替代他们的用户名来进行认证（authentication）。
+创建一个定制认证（authentication）后台非常容易，就是编写一个Python类实现上面两个方法。我们要创建一个认证（authentication）后台让用户在我们的站点中使用他们e-mail替代他们的用户名来进行认证（authentication）。
 
 在你的*account*应用中创建一个新的文件命名为*authentication.py*，为它添加如下代码：
 
     from django.contrib.auth.models import User
+	
     class EmailAuthBackend(object):
         """
         Authenticate using e-mail account.
@@ -936,8 +1002,8 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 这是一个简单的认证（authentication）后台。`authenticate()`方法接收了*username*和*password*两个可选参数。我们可以使用不同的参数，但是我们需要使用*username*和*password*来确保我们的后台可以立马在认证（authentication）框架视图（views）中工作。以上代码完成了以下工作内容：
 
-* authenticate()：我们尝试获取一个用户通过给予的e-mail地址和使用*User*模型（model）中内置的`check_password()`方法来检查密码。这个方法会对给予密码进行哈希化来和数据库中存储的加密密码进行匹配。
-* get_user()：我们获取一个用户通过*user_id*参数。Django使用这个后台来认证用户之后取回*User*对象放置到持续的用户会话中。
+* authenticate()：我们尝试通过给予的e-mail地址获取一个用户和使用*User*模型（model）中内置的`check_password()`方法来检查密码。这个方法会对给予密码进行哈希化来和数据库中存储的加密密码进行匹配。
+* get_user()：我们通过*user_id*参数获取一个用户。Django使用这个后台来认证用户之后取回*User*对象放置到持续的用户会话中。
 
 编辑项目中的*settings.py*文件添加如下设置：
 
@@ -1003,7 +1069,7 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 回到网站的Dashboard。你会看到类似下图所示的：
 
-![django-4-19](http://ohqrvqrlb.bkt.clouddn.com/django-4-19.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-19.png)
 
 拷贝**App ID**和**App Secret**关键值，将它们添加在项目中的*settings.py**文件中，如下所示：
 
@@ -1024,11 +1090,11 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 在浏览器中打开 http://mysite.com:8000/account/login/ 。现在你的登录页面会如下图所示：
 
-![django-4-20](http://ohqrvqrlb.bkt.clouddn.com/django-4-20.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-20.png)
 
 点击**Login with Facebook*按钮。你会被重定向到Facebook，然后你会看到一个对话询问你的权限是否让*Bookmarks*应用访问你的公共Facebook profile：
 
-![django-4-21](http://ohqrvqrlb.bkt.clouddn.com/django-4-21.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-21.png)
 
 点击**Okay**按钮。Python-social-auth会对认证（authentication）进行操作。如果每一步都没有出错，你会登录成功然后被重定向到你的网站的dashboard页面。请记住，我们已经使用过这个URL在*LOGIN_REDIRECT_URL*设置中。就像你所看到的，在你的网站中添加社交认证（authentication）是非常简单的。
 
@@ -1044,7 +1110,7 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 确保你勾选了复选款**Allow this application to be used to Sign in with Twitter**。之后点击**Keys and Access Tokens**。你会看到如下所示信息：
 
-![django-4-22](http://ohqrvqrlb.bkt.clouddn.com/django-4-22.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-22.png)
 
 拷贝**Consumer Key**和**Consumer Secret**关键值，将它们添加到项目*settings.py*的设置中，如下所示：
 
@@ -1057,7 +1123,7 @@ Django提供了一个简单的方法来定义你自己的认证（authentication
 
 在浏览器中打开 http://mysite.com:8000/account/login/ 然后点击**Login with Twitter**链接。你会被重定向到Twitter然后它会询问你授权给应用，如下所示：
 
-![django-4-23](http://ohqrvqrlb.bkt.clouddn.com/django-4-23.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-23.png)
 
 点击**Authorize app**按钮。你会登录成功并且重定向到你的网站dashboard页面。
 
@@ -1066,11 +1132,11 @@ Google提供*OAuth2*认证（authentication）。你可以访问 https://develop
 
 首先，你徐闯创建一个*API key*在你的Google开发者控制台。在浏览器中打开 https://console.developers.google.com/project 然后点击**Create project**按钮。输入一个名字然后点击**Create**按钮，如下所示：
 
-![django-4-24](http://ohqrvqrlb.bkt.clouddn.com/django-4-24.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-24.png)
 
 在项目创建之后，点击在左侧菜单的**APIs & auth**链接，然后点击**Credentials**部分。点击**Add credentials**按钮，然后选择**OAuth2.0 client ID**，如下所示：
 
-![django-4-25](http://ohqrvqrlb.bkt.clouddn.com/django-4-25.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-25.png)
 
 Google首先会询问你配置同意信息页面。这个页面将会展示给用户告知他们是否同意使用他们的Google账号来登录访问你的网站。点击*Configure consent screen*按钮。选择你的e-mail地址，填写*Bookmarks*为**Product name**，然后点击**Save**按钮。这个给你的项目使用的同意信息页面将会配置完成然后你会被重定向去完成创建你的Client ID。
 
@@ -1082,7 +1148,7 @@ Google首先会询问你配置同意信息页面。这个页面将会展示给�
 
 这表单（form）将会如下所示：
 
-![django-4-26](http://ohqrvqrlb.bkt.clouddn.com/django-4-26.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-26.png)
 
 点击**Create**按钮。你将会获得**Client ID**和**Client Secret**关键值。在你的*settings.py*中添加它们，如下所示：
 
@@ -1091,7 +1157,7 @@ Google首先会询问你配置同意信息页面。这个页面将会展示给�
     
 在Google开发者控制台的左方菜单，**APIs & auth**部分的下方，点击**APIs**链接。你会看到包含所有Google Apis的列表。点击 **Google+ API**然后点击**Enable API**按钮在以下页面中：
 
-![django-4-27](http://ohqrvqrlb.bkt.clouddn.com/django-4-27.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-27.png)
 
 编辑*login.html*模板（template）在`<ul>`元素中添加如下代码：
 
@@ -1099,11 +1165,11 @@ Google首先会询问你配置同意信息页面。这个页面将会展示给�
 
 在浏览器中打开 http://mysite.com:8000/account/login/ 。登录页面将会看上去如下图所示：
 
-![django-4-28](http://ohqrvqrlb.bkt.clouddn.com/django-4-28.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-28.png)
 
 点击**Login with Google**按钮。你将会被重定向到Google并且被询问权限通过我们之前配置的同意信息页面：
 
-![django-4-29](http://ohqrvqrlb.bkt.clouddn.com/django-4-29.png)
+![](http://ohqrvqrlb.bkt.clouddn.com/django-4-29.png)
 
 点击**Accept**按钮。你会登录成功并重定向到你的网站的dashboard页面。
 
