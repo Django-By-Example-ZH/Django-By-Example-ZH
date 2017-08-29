@@ -249,7 +249,7 @@ Django会为所有出现在*ABSOLUTE_URL_OVERRIDES*设置中的模型（models�
     <h1>{{ user.get_full_name }}</h1>
     <div class="profile-info">
     {% thumbnail user.profile.photo "180x180" crop="100%" as im %}
-        ![]({{ im.url }})
+        <img src="{{ im.url }}" class="user_detail">
     {% endthumbnail %}
     </div>
     {% with total_followers=user.followers.count %}
@@ -264,8 +264,8 @@ Django会为所有出现在*ABSOLUTE_URL_OVERRIDES*设置中的模型（models�
             Unfollow
         {% endif %}
     </a>
-    <div id="image-list" class="imget-container">
-        {% include "images/image/list_ajax.html" with images = user.images_create.all %}
+    <div id="image-list" class="image-container">
+        {% include "images/image/list_ajax.html" with images = user.images_created.all %}
     </div>
     {% endwith %}
 {% endblock %}
@@ -275,7 +275,7 @@ Django会为所有出现在*ABSOLUTE_URL_OVERRIDES*设置中的模型（models�
 
 再次打开你的浏览器，点击一个拥有图片书签的用户链接，你会看到一个profile详情如下所示：
 
-![django-6-2](http://upload-images.jianshu.io/upload_images/3966530-6dffd599f25f35aa.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+![image](http://upload-images.jianshu.io/upload_images/3966530-6dffd599f25f35aa.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
 
 ### 创建一个AJAX视图（view）来关注用户
 
