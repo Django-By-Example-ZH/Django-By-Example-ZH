@@ -257,7 +257,7 @@ Django会为所有出现在*ABSOLUTE_URL_OVERRIDES*设置中的模型（models�
         <span class="total">{{ total_followers }}</span>
         follower{{ total_followers|pluralize }}
     </span>
-    <a href="#" data-id="{{ user.id }}" data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="followbutton">
+    <a href="#" data-id="{{ user.id }}" data-action="{% if request.user in user.followers.all %}un{% endif %}follow" class="follow button">
         {% if request.user not in user.followers.all %}
             Follow
         {% else %}
@@ -313,7 +313,7 @@ def user_follow(request):
 在*account*应用中的*urls.py*文件中导入你刚才创建的视图（view）然后为它添加URL模式：
 
 ```python
-    url(r'^users/follow/$', views.user_follow, name='user_follow'),
+    url(r'^users/follow/$', views.user_follow, name='user_follow'), # 这里有个坑不能设置为users／follow／ chrome直接404 需要设置别的名字 如user／follow
 ```
 
 请确保你放置的这个URL模式的位置在*user_detail*URL模式之前。否则，任何对 */users/follow/* 的请求都会被*user_detail*模式给正则匹配然后执行。请记住，每一次的HTTP请求Django都会对每一条存在的URL模式进行匹配直到第一条匹配成功才会停止继续匹配。
